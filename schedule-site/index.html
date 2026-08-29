@@ -11,6 +11,7 @@
 <link rel="stylesheet"
   href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Manrope:wght@400;500;600;700&display=swap">
 <style>
+  /* ==== ТОКЕНЫ · палитра, размеры ============================================= */
   /* ================= ПАЛИТРА =================
      Все цвета живут только здесь. Ни одного hex в правилах и в скриптах —
      иначе тёмная тема разъезжается, как было раньше.
@@ -58,24 +59,65 @@
     --hero-ink:#EDEAF6; --hero-veil:rgba(255,255,255,.12); --hero-veil-2:rgba(255,255,255,.2);
     --hero-card:rgba(20,15,30,.35); --hero-card-line:rgba(255,255,255,.12);
   }
+  html[data-theme="dracula"] mark{background:var(--lav);color:var(--on-accent)}
+
+  /* ==== БАЗА · сброс, типографика ============================================= */
   *{box-sizing:border-box}
   body{margin:0;overflow-x:hidden;background:var(--app-bg);color:var(--ink);
        font-family:"Manrope",-apple-system,"Segoe UI",Roboto,sans-serif,
        "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji","Twemoji Mozilla"}
   .font-display{font-family:"Fraunces",Georgia,serif,
     "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji","Twemoji Mozilla"}
+  mark{background:var(--gold);color:var(--on-accent);border-radius:4px;padding:0 2px}
+  /* до первой отрисовки анимации выключены — иначе на обновлении страницы
+     видно, как панель заезжает на своё место */
+  .preload *,.preload *::before,.preload *::after{transition:none!important;animation:none!important}
+  /* поля ввода и списки — свои, без внешних библиотек */
+  [hidden],.hidden{display:none!important}
+
+  /* Фокус виден при работе с клавиатуры. Свои кнопки не имеют его по умолчанию,
+     а без него страницу нельзя пройти табом. */
+  :focus-visible{outline:2px solid var(--blue-ink);outline-offset:2px;border-radius:8px}
+  .ctl:focus-visible,.multi-btn:focus-visible{outline-offset:1px}
+
+  /* ==== ИКОНКИ ================================================================ */
   /* эмодзи всегда цветные, каким бы шрифтом ни был набран соседний текст */
   /* свой набор иконок: контурные SVG, наследуют цвет текста и размер шрифта */
   .ic{width:1.05em;height:1.05em;flex:none;vertical-align:-.16em;
     fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-  .ic-lg{width:1.5em;height:1.5em}
-  mark{background:var(--gold);color:var(--on-accent);border-radius:4px;padding:0 2px}
-  html[data-theme="dracula"] mark{background:var(--lav);color:var(--on-accent)}
 
-  /* до первой отрисовки анимации выключены — иначе на обновлении страницы
-     видно, как панель заезжает на своё место */
-  .preload *,.preload *::before,.preload *::after{transition:none!important;animation:none!important}
+  /* ==== ПРИМИТИВЫ · контейнер, поля =========================================== */
+  .ctl{width:100%;height:34px;box-sizing:border-box;padding:0 10px;border-radius:10px;
+    border:1px solid var(--line);background:var(--panel);color:var(--ink);
+    font-family:inherit;font-size:13px;font-weight:600;outline:0}
+  .ctl::placeholder{color:var(--muted);font-weight:500}
+  .ctl:focus{border-color:var(--blue);box-shadow:0 0 0 3px color-mix(in srgb,var(--blue) 28%,transparent)}
+  select.ctl{cursor:pointer;padding-right:28px;-webkit-appearance:none;appearance:none;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%238A97A0' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;background-position:right 10px center}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 var(--gut)}
+  /* horizontal scroll wrapper (mobile) */
+  .hscroll{overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px}
+  /* блок «ничего не найдено» — отдельное имя: раньше звался .empty и его отступ
+     в 56px прилетал пустым ячейкам месяца, отчего сетка разъезжалась */
+  .emptystate{text-align:center;color:var(--muted);padding:56px 20px}
+  .emptystate .big{font-size:34px;opacity:.5}
+  .emptystate .big .ic{width:38px;height:38px;stroke-width:1.5}
 
+  /* ==== ПЛАШКИ ================================================================ */
+  /* у плашек своя обводка — на тёмной теме фон не теряется на тёмной карточке */
+  .pill,.wtag,.mabbr,.badge-now,.badge-next,.today-pill{
+    box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--ink) 16%,transparent)}
+  .pill{font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px;color:var(--on-accent);white-space:nowrap}
+  .pill.sg1{background:var(--sg1);color:var(--on-accent)}
+  .pill.sg2{background:var(--sg2);color:var(--on-accent)}
+
+  /* Если человек просил систему уменьшить анимацию — не двигаем ничего. */
+  @media (prefers-reduced-motion: reduce){
+    *,*::before,*::after{transition-duration:.01ms!important;animation-duration:.01ms!important}
+  }
+
+  /* ==== РАСКЛАДКА · слои, панель, лист ======================================== */
   /* ---------- РАСКЛАДКА ----------
      #main
        .ribbon  — баннер во всю ширину, не двигается никогда
@@ -87,15 +129,11 @@
      Широкое окно (body.wide): меню — обычная колонка рядом с листом, липкая средствами браузера,
      поэтому при скролле идёт с контентом как влитая, без пересчётов на JS. */
   #main{position:relative;z-index:10}
-  /* порядок слоёв: баннер и лист всегда НАД панелью, панель никогда ничего не перекрывает */
-  .ribbon{position:relative;z-index:2}
   #cols{display:flex;align-items:flex-start}
-
   /* лист = центральная колонка, непрозрачная: в закрытом виде панель прячется ровно под ней */
   #below{position:relative;z-index:2;width:100%;max-width:var(--maxw);margin:0 auto;min-height:100vh;
     background:var(--app-bg);
     transform:translateX(var(--shift,0px));transition:transform .25s}
-
   /* Панель — липкая колонка средствами браузера, без пересчётов на скролле.
      На узком экране она не занимает места в раскладке (отрицательный внешний отступ)
      и задвинута под лист; при открытии панель и лист разъезжаются навстречу. */
@@ -105,15 +143,12 @@
     transform:translateX(var(--panel-shift,0px));transition:transform .25s}
   body.side-left #sidebar{order:0;margin-left:0;margin-right:calc(-1 * var(--panelw));
     border-left:0;border-right:1px solid var(--line)}
-
   /* Смена стороны использует то же движение, что и кнопка: панель уезжает под центр,
      невидимой переносится и выезжает обратно. Отдельной анимации для этого нет. */
   body.no-anim #sidebar,body.no-anim #below{transition:none}
-
   /* Панель толкает контент, а не накрывает — ни затенения, ни перехвата кликов.
      Закрывают её той же кнопкой, что и открыли. */
   #overlay{display:none}
-
   /* Бокового поля хватает на панель целиком: она занимает своё место рядом с контентом */
   body.wide #sidebar{margin-left:0;margin-right:0}
   body.wide.side-left #sidebar{margin-left:var(--gapend,0px);margin-right:0}
@@ -127,10 +162,9 @@
   body.wide #overlay{display:none}
   body.wide #burger{display:none}
   .spacer{flex:1}
-  #burger{order:3}
   body.side-left #burger{order:-1}
-  @media(max-width:1023px){ .weekpick{max-width:none} }
 
+  /* ==== МЕНЮ ================================================================== */
   /* sidebar */
   /* шапка меню повторяет центральную полосу: та же высота, фон и нижняя линия */
   .side-head{flex:none;display:flex;align-items:center;gap:8px;padding:12px 14px;
@@ -191,7 +225,13 @@
     font-size:12.5px;font-weight:600;color:var(--ink);cursor:pointer;white-space:normal}
   .multi-list label:hover{background:var(--panel-2)}
   .multi-list input{accent-color:var(--blue);flex:none;margin:0}
+  /* тот же сегментный тумблер, что и в меню, только на светлом фоне полосы */
+  .seg-bar{flex:none;background:var(--panel);border:1px solid var(--line)}
+  .seg-bar button{flex:none;padding:6px 14px}
 
+  /* ==== ШАПКА · hero и погода ================================================= */
+  /* порядок слоёв: баннер и лист всегда НАД панелью, панель никогда ничего не перекрывает */
+  .ribbon{position:relative;z-index:2}
   /* ribbon */
   .ribbon{background:linear-gradient(100deg,var(--hero-a) 0%,var(--hero-b) 52%,var(--hero-c) 100%);
     color:var(--hero-ink);padding:22px 0 26px}
@@ -216,19 +256,8 @@
   .weather .w-sub{font-size:12px;font-weight:600;opacity:.8}
   .weather .w-advice{font-size:12px;margin-top:3px;max-width:230px}
 
-  /* поля ввода и списки — свои, без внешних библиотек */
-  [hidden],.hidden{display:none!important}
-  .ctl{width:100%;height:34px;box-sizing:border-box;padding:0 10px;border-radius:10px;
-    border:1px solid var(--line);background:var(--panel);color:var(--ink);
-    font-family:inherit;font-size:13px;font-weight:600;outline:0}
-  .ctl::placeholder{color:var(--muted);font-weight:500}
-  .ctl:focus{border-color:var(--blue);box-shadow:0 0 0 3px color-mix(in srgb,var(--blue) 28%,transparent)}
-  select.ctl{cursor:pointer;padding-right:28px;-webkit-appearance:none;appearance:none;
-    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%238A97A0' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-    background-repeat:no-repeat;background-position:right 10px center}
-
-  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 var(--gut)}
-
+  /* ==== ПОЛОСА · неделя, виды, бургер ========================================= */
+  #burger{order:3}
   /* topbar */
   /* высота полосы едина для центра и меню */
   /* полоса — по ширине центральной колонки (как в спеке), иначе её край наезжает на меню */
@@ -238,7 +267,6 @@
   /* .bar-inner — это сам .wrap, поэтому только вертикальные отступы:
      шорткат padding убил бы горизонтальные 18px из .wrap */
   .bar-inner{display:flex;align-items:center;gap:10px;padding-top:12px;padding-bottom:12px;flex-wrap:nowrap}
-
   /* переключатель недели — единый контрол: стрелки, неделя и чип живут в одной капсуле */
   .weekpick{display:flex;align-items:center;flex:1 1 auto;min-width:0;max-width:360px;
     background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:3px}
@@ -262,7 +290,6 @@
     color:var(--on-accent);white-space:nowrap}
   .wtag.even{background:var(--mint)} .wtag.odd{background:var(--pink)}
   .wt-short{display:none}
-  @media(max-width:640px){ .wt-full{display:none} .wt-short{display:inline} }
   .search{flex:1;min-width:190px;position:relative}
   .search .ic{position:absolute;left:10px;top:50%;transform:translateY(-50%);
     width:15px;height:15px;color:var(--muted);pointer-events:none}
@@ -272,14 +299,11 @@
     z-index:60;overflow:hidden;max-height:340px;overflow-y:auto;padding:6px}
   .sugg-item{display:flex;align-items:center;gap:9px;padding:9px 11px;border-radius:10px;cursor:pointer;
     font-size:14px;font-weight:600;color:var(--ink)}
-  .sugg-item:hover,.sugg-item.act{background:var(--panel-2)}
+  .sugg-item:hover{background:var(--panel-2)}
   .sugg-item .si{width:8px;height:8px;border-radius:50%;flex:none}
   .sugg-item .sc{font-size:11px;color:var(--muted);font-weight:600;margin-left:auto}
-  /* тот же сегментный тумблер, что и в меню, только на светлом фоне полосы */
-  .seg-bar{flex:none;background:var(--panel);border:1px solid var(--line)}
-  .seg-bar button{flex:none;padding:6px 14px}
-  @media(max-width:1023px){ .seg-bar{display:none!important} }
 
+  /* ==== ВИД: СПИСОК =========================================================== */
   /* list */
   .day{margin:20px 0}
   .day.today{border:2px solid var(--gold);border-radius:18px;padding:10px 14px;
@@ -290,13 +314,12 @@
   .today-pill{font-size:11px;font-weight:700;background:var(--gold);color:var(--on-accent);padding:2px 8px;border-radius:999px}
   .weekhead{display:flex;align-items:center;gap:10px;margin:26px 0 6px}
   .weekhead .day-date{font-size:13px}
-
   /* Отступы одинаковые у всех строк — иначе «сейчас/ближайшая» сдвигали колонки.
      Рамка у них рисуется через outline: он не занимает места в раскладке. */
   .pair{display:grid;grid-template-columns:92px 1fr;gap:14px;padding:10px 12px;
     border-top:1px solid var(--line);border-radius:16px}
   .pair:first-of-type{border-top:0}
-  .pair-time{color:var(--muted);font-weight:600;font-size:13px;line-height:1.3}
+  .pair-time{color:var(--muted);font-weight:600;font-size:13px;line-height:1.45}
   .pair-time .n{display:block;color:var(--ink);font-size:15px;font-weight:700}
   .badge-now,.badge-next{display:inline-block;margin-top:5px;font-size:10px;font-weight:700;
     padding:2px 7px;border-radius:999px}
@@ -326,22 +349,27 @@
   .cols .sgcol::before{display:none}
   .cols .sgcol + .sgcol{border-left:1.5px dashed color-mix(in srgb,var(--ink) 26%,transparent)}
   .cols .sgcol .row{flex:1}
-  @media(max-width:680px){
-    .cols{flex-direction:column}
-    .cols .sgcol + .sgcol{border-left:0;
-      border-top:1.5px dashed color-mix(in srgb,var(--ink) 26%,transparent)}
-  }
+  /* время внутри карточки — когда у подгрупп оно разное; выглядит так же,
+     как время слева, чтобы расписание читалось одним языком */
+  .l-time{color:var(--muted);font-weight:700;font-size:12.5px;margin-bottom:4px;letter-spacing:.01em}
+  /* заметка к занятию: свёрнута, раскрывается по клику */
+  .note{margin-top:6px;font-size:12px;color:var(--muted)}
+  .note summary{display:flex;align-items:center;gap:5px;cursor:pointer;
+    color:var(--blue-ink);list-style:none;min-width:0}
+  /* в свёрнутом виде видно начало заметки, а не безликое «Заметка» */
+  .note-peek{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;font-weight:600}
+  .note-label{display:none;font-weight:700}
+  .note[open] .note-peek{display:none}
+  .note[open] .note-label{display:inline}
+  .note-full{color:var(--muted)}
+  .note summary::-webkit-details-marker{display:none}
+  .note summary:hover{filter:brightness(1.1)}
+  .note[open] summary{margin-bottom:4px}
+  .note>div{line-height:1.45}
   .lesson .subj{font-family:"Fraunces",Georgia,serif,"Segoe UI Emoji","Apple Color Emoji";font-size:16px;font-weight:600;line-height:1.25}
   .lesson .meta{display:flex;flex-wrap:wrap;gap:7px 13px;margin-top:7px;color:var(--muted);font-size:13px;font-weight:500}
   .lesson .meta b{color:var(--ink);font-weight:600}
   .lesson .meta .ic{color:var(--muted)}
-  /* у плашек своя обводка — на тёмной теме фон не теряется на тёмной карточке */
-  .pill,.wtag,.mabbr,.badge-now,.badge-next,.today-pill{
-    box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--ink) 16%,transparent)}
-  .pill{font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px;color:var(--on-accent);white-space:nowrap}
-  .pill.sg1{background:var(--sg1);color:var(--on-accent)}
-  .pill.sg2{background:var(--sg2);color:var(--on-accent)}
-  .pill-time{background:var(--gold);color:var(--on-accent)}
   .row{display:flex;gap:14px;align-items:center}
   .linfo{flex:1;min-width:0}
   .room-side{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;
@@ -351,97 +379,6 @@
   .pair.now .room-side{background:var(--now)} .pair.now .room-side .rm,.pair.now .room-side .rl{color:var(--on-now)}
   .selfstudy{background:var(--mint-soft);border:1px dashed var(--mint);color:var(--mint-ink);
     border-radius:14px;padding:13px 16px;font-weight:700}
-
-  /* попап дня — открывается кликом по ячейке в месяце и в неделе */
-  .pop{position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;
-    padding:20px;background:rgba(30,15,35,.34)}
-  .pop-card{width:min(640px,100%);max-height:min(82vh,100% - 8px);display:flex;flex-direction:column;
-    background:var(--app-bg);border:1px solid var(--line);border-radius:18px;overflow:hidden;
-    box-shadow:0 24px 60px rgba(60,40,70,.28)}
-  .pop-head{flex:none;display:flex;align-items:center;gap:10px;padding:12px 14px;
-    min-height:var(--barh);box-sizing:border-box;border-bottom:1px solid var(--line);
-    background:var(--panel)}
-  .pop-title{flex:1;min-width:0;font-weight:700;font-size:15px}
-  /* flex:1 задаёт базис 0 — карточка схлопывалась до шапки и тело сразу скроллилось.
-     Нужен естественный размер, а прокрутка — только если контент правда не влез. */
-  .pop-body{flex:0 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;
-    padding:6px 16px 18px}
-  .pop-body .day{margin:0}
-  .pop-body .day.today{border:0;padding:0;background:none}
-  .pop-body .day-head{display:none}
-  /* внутри попапа всё компактнее, чтобы день целиком помещался и на телефоне */
-  .pop-body .pair{grid-template-columns:52px 1fr;gap:10px;padding:7px 0}
-  .pop-body .pair.now,.pop-body .pair.next{padding:7px 9px;border-radius:12px}
-  .pop-body .pair-time{font-size:11px;display:block}
-  .pop-body .pair-time .n{font-size:13px}
-  .pop-body .badge-now,.pop-body .badge-next{margin-top:3px;padding:1px 6px}
-  .pop-body .lesson{padding:8px 10px;border-radius:12px;box-shadow:none}
-  .pop-body .lesson.group{padding:5px}
-  .pop-body .cols{gap:5px}
-  .pop-body .cols .sgcol{padding:6px 8px}
-  .pop-body .lesson .subj{font-size:13.5px;line-height:1.2}
-  .pop-body .lesson .meta{gap:4px 10px;margin-top:4px;font-size:11.5px}
-  .pop-body .pill{font-size:10px;padding:2px 7px}
-  .pop-body .row{gap:8px}
-  .pop-body .room-side{padding:4px 9px;border-radius:10px}
-  .pop-body .room-side .rm{font-size:15px}
-  .pop-body .room-side .rl{display:none}
-  .pop-body .selfstudy{padding:10px 12px;font-size:13px}
-  @media(max-width:640px){
-    .pop{padding:10px}
-    .pop-body{padding:4px 10px 12px}
-    .pop-body .pair{grid-template-columns:46px 1fr;gap:8px}
-    .pop-body .cols{flex-direction:column}
-  }
-  .mcell:not(.empty),.wk td.c{cursor:pointer}
-
-  /* legend */
-  .legend{display:flex;flex-wrap:wrap;gap:8px 14px;padding:12px 0 2px}
-  .lg{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--muted)}
-  .lg i{width:12px;height:12px;border-radius:50%;display:inline-block}
-  .lg i.ring{background:transparent!important;border:2px solid var(--gold)}
-  .lg i.ring.now{border-color:var(--now)}
-
-  /* horizontal scroll wrapper (mobile) */
-  .hscroll{overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px}
-
-  /* week grid */
-  .wk{width:100%;min-width:660px;border-collapse:separate;border-spacing:6px;table-layout:fixed}
-  .wk th{font-size:12px;color:var(--muted);font-weight:700;padding:4px}
-  .wk th.today,.wk td.today{background:color-mix(in srgb,var(--gold) 14%,transparent);border-radius:10px}
-  .wk td.tm{font-size:11px;color:var(--muted);font-weight:700;text-align:center;width:64px}
-  .wk td.tm b{display:block;color:var(--ink);font-size:13px}
-  .wk td.c{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:5px;vertical-align:top}
-  .wk td.c.now{border-color:var(--now);box-shadow:0 0 0 2px color-mix(in srgb,var(--now) 25%,transparent)}
-  .chip{display:block;font-size:11px;line-height:1.25;border-radius:7px;padding:4px 6px;margin:3px 0;
-    color:var(--chip-ink)}
-  .chip b{font-weight:700}
-  .wk-self{font-size:15px;line-height:1.2;text-align:center;color:var(--mint-ink)}
-  .selfline{justify-content:center;font-size:14px;color:var(--mint-ink)}
-  .wk td.tm.now{background:var(--now);border-radius:8px}
-  .wk td.tm.now,.wk td.tm.now b{color:var(--on-now)}
-  .wk td.tm.next{background:color-mix(in srgb,var(--blue) 22%,transparent);border-radius:8px}
-
-  /* month */
-  /* Чт и Вс — узкие колонки: по четвергам только самостоятельная работа, воскресенье пустое */
-  .mgrid{display:grid;grid-template-columns:1fr 1fr 1fr .34fr 1fr 1fr .34fr;gap:6px;min-width:560px}
-  .mgrid .mh:nth-child(7n+4),.mgrid .mh:nth-child(7n){opacity:.55}
-  .mgrid>*:nth-child(7n+4),.mgrid>*:nth-child(7n){font-size:11px}
-  .mgrid .mcell:nth-child(7n+4),.mgrid .mcell:nth-child(7n){padding:6px 3px;opacity:.7}
-  .mgrid .mcell:nth-child(7n+4) .mline{white-space:normal;justify-content:center;text-align:center;gap:2px}
-  .mgrid .mh{font-size:11px;color:var(--muted);font-weight:700;text-align:center;padding:2px}
-  .mcell{min-height:82px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:6px 7px;
-    cursor:pointer;transition:transform .1s}
-  .mcell.empty{background:transparent;border-color:transparent;cursor:default}
-  .mcell:hover:not(.empty){transform:translateY(-2px)}
-  .mcell.today{border:2px solid var(--gold)}
-  .mcell .mn{font-size:12px;font-weight:700;color:var(--muted)}
-  .mcell.today .mn{color:var(--gold-ink)}
-  .mline{display:flex;align-items:center;gap:5px;font-size:11px;margin-top:4px;white-space:nowrap;overflow:hidden}
-  .mabbr{display:inline-flex;align-items:center;justify-content:center;width:36px;height:20px;padding:0;
-    border-radius:999px;font-size:10px;font-weight:800;color:var(--on-accent);flex:none;letter-spacing:.02em}
-  .mtime{color:var(--ink);font-weight:700;font-size:10px;min-width:30px;flex:none}
-  .mroom{color:var(--muted);font-weight:700;font-size:10px;overflow:hidden;text-overflow:ellipsis}
   /* Подгруппа читается по заливке: 1-я голубая, 2-я мятная.
      Если в ячейке обе — делим её пополам. Работает одинаково в списке, неделе и месяце. */
   /* общая пара (лекция или семинар сразу у обеих) — тихий серо-голубой */
@@ -462,20 +399,154 @@
     background:linear-gradient(90deg,
       color-mix(in srgb,var(--sg2) var(--sg-strength),var(--panel)) 0 24%,
       color-mix(in srgb,var(--sg1) var(--sg-strength),var(--panel)) 76% 100%)}
+
+  /* ==== ВИД: НЕДЕЛЯ =========================================================== */
+  /* week grid */
+  .wk{width:100%;min-width:660px;border-collapse:separate;border-spacing:6px;table-layout:fixed}
+  .wk th{font-size:12px;color:var(--muted);font-weight:700;padding:4px}
+  .wk th.today,.wk td.today{background:color-mix(in srgb,var(--gold) 14%,transparent);border-radius:10px}
+  .wk td.tm{font-size:11px;color:var(--muted);font-weight:700;text-align:center;width:64px}
+  .wk td.tm b{display:block;color:var(--ink);font-size:13px}
+  .wk td.c{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:5px;vertical-align:top}
+  .wk td.c.now{border-color:var(--now);box-shadow:0 0 0 2px color-mix(in srgb,var(--now) 25%,transparent)}
+  .wk-self{font-size:15px;line-height:1.2;text-align:center;color:var(--mint-ink)}
+  .selfline{justify-content:center;font-size:14px;color:var(--mint-ink)}
+  .wk td.tm.now{background:var(--now);border-radius:8px}
+  .wk td.tm.now,.wk td.tm.now b{color:var(--on-now)}
+  .wk td.tm.next{background:color-mix(in srgb,var(--blue) 22%,transparent);border-radius:8px}
+
+  /* ==== ВИД: МЕСЯЦ ============================================================ */
+  .mcell:not(.empty),.wk td.c{cursor:pointer}
+  /* month */
+  /* Дни без обычных пар занимают узкую колонку. Какие это дни — решает разметка
+     по данным: у разных групп самостоятельная работа в разные дни. */
+  .mgrid{display:grid;gap:6px;min-width:560px}
+  .mgrid .quiet{opacity:.7;font-size:11px}
+  .mgrid .mh.quiet{opacity:.55}
+  .mgrid .mcell.quiet{padding:6px 3px}
+  .mgrid .mcell.quiet .mline{white-space:normal;justify-content:center;text-align:center;gap:2px}
+  .mgrid .mh{font-size:11px;color:var(--muted);font-weight:700;text-align:center;padding:2px}
+  .mcell{min-height:82px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:6px 7px;
+    cursor:pointer;transition:transform .1s}
+  .mcell.empty{background:transparent;border-color:transparent;cursor:default}
+  .mcell:hover:not(.empty){transform:translateY(-2px)}
+  .mcell.today{border:2px solid var(--gold)}
+  .mcell .mn{font-size:12px;font-weight:700;color:var(--muted)}
+  .mcell.today .mn{color:var(--gold-ink)}
+  .mline{display:flex;align-items:center;gap:5px;font-size:11px;margin-top:4px;white-space:nowrap;overflow:hidden}
+  .mabbr{display:inline-flex;align-items:center;justify-content:center;width:36px;height:20px;padding:0;
+    border-radius:999px;font-size:10px;font-weight:800;color:var(--on-accent);flex:none;letter-spacing:.02em}
+  .mtime{color:var(--ink);font-weight:700;font-size:10px;min-width:30px;flex:none}
+  .mroom{color:var(--muted);font-weight:700;font-size:10px;overflow:hidden;text-overflow:ellipsis}
+
+  /* ==== ЗАЛИВКА ПО ПОДГРУППАМ · общая ========================================= */
   .sgtint0{--stripe:var(--sg0)}
   .sgtint1,.sgtint12{--stripe:var(--sg1)}
   .sgtint2,.sgtint21{--stripe:var(--sg2)}
 
-  /* блок «ничего не найдено» — отдельное имя: раньше звался .empty и его отступ
-     в 56px прилетал пустым ячейкам месяца, отчего сетка разъезжалась */
-  .emptystate{text-align:center;color:var(--muted);padding:56px 20px}
-  .emptystate .big{font-size:34px;opacity:.5}
-  .emptystate .big .ic{width:38px;height:38px;stroke-width:1.5}
-  footer{color:var(--muted);font-size:12px;line-height:1.6;padding:26px 0 60px;border-top:1px solid var(--line);margin-top:26px}
+  /* ==== ПОПАП ДНЯ ============================================================= */
+  /* попап дня — открывается кликом по ячейке в месяце и в неделе */
+  .pop{position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;
+    padding:20px;background:rgba(30,15,35,.34)}
+  .pop-card{width:min(640px,100%);max-height:min(82vh,100% - 8px);display:flex;flex-direction:column;
+    background:var(--app-bg);border:1px solid var(--line);border-radius:18px;overflow:hidden;
+    box-shadow:0 24px 60px rgba(60,40,70,.28)}
+  .pop-head{flex:none;display:flex;align-items:center;gap:10px;padding:12px 14px;
+    min-height:var(--barh);box-sizing:border-box;border-bottom:1px solid var(--line);
+    background:var(--panel)}
+  .pop-title{flex:1;min-width:0;font-weight:700;font-size:15px}
+  /* flex:1 задаёт базис 0 — карточка схлопывалась до шапки и тело сразу скроллилось.
+     Нужен естественный размер, а прокрутка — только если контент правда не влез. */
+  .pop-body{flex:0 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;
+    padding:6px 16px 18px}
+  .pop-body .day{margin:0}
+  .pop-body .day.today{border:0;padding:0;background:none}
+  .pop-body .day-head{display:none}
+  /* внутри попапа всё компактнее, чтобы день целиком помещался и на телефоне */
+  /* отступы одинаковые у всех строк, иначе «сейчас/ближайшая» съезжает вбок */
+  .pop-body .pair{grid-template-columns:52px 1fr;gap:10px;padding:7px 9px}
+  .pop-body .pair-time{font-size:11px;display:block}
+  .pop-body .pair-time .n{font-size:13px}
+  .pop-body .badge-now,.pop-body .badge-next{margin-top:3px;padding:1px 6px}
+  .pop-body .lesson{padding:8px 10px;border-radius:12px;box-shadow:none}
+  /* сдвоенная пара в попапе выглядит так же, как в списке: одна карточка,
+     половины вплотную, без белых краёв */
+  .pop-body .lesson.group{padding:0}
+  .pop-body .cols .sgcol{padding:8px 10px}
+  .pop-body .lesson .subj{font-size:13.5px;line-height:1.2}
+  .pop-body .lesson .meta{gap:4px 10px;margin-top:4px;font-size:11.5px}
+  .pop-body .pill{font-size:10px;padding:2px 7px}
+  .pop-body .row{gap:8px}
+  .pop-body .room-side{padding:4px 9px;border-radius:10px}
+  .pop-body .room-side .rm{font-size:15px}
+  .pop-body .room-side .rl{display:none}
+  .pop-body .selfstudy{padding:10px 12px;font-size:13px}
 
+  /* ==== ЛЕГЕНДА, ПОДВАЛ ======================================================= */
+  /* legend */
+  .legend{display:flex;flex-wrap:wrap;gap:8px 14px;padding:12px 0 2px}
+  .lg{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--muted)}
+  .lg i{width:12px;height:12px;border-radius:50%;display:inline-block}
+  .lg i.ring{background:transparent!important;border:2px solid var(--gold)}
+  .lg i.ring.now{border-color:var(--now)}
+  footer{color:var(--muted);font-size:12px;line-height:1.5;padding:18px 0 60px;
+    border-top:1px solid var(--line);margin-top:26px}
+  .f-title{font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;font-weight:700;
+    color:var(--muted);margin-bottom:8px}
+  .f-list{list-style:none;margin:0;padding:0;display:grid;gap:6px 22px;
+    grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+  .f-list li{position:relative;padding-left:14px}
+  .f-list li::before{content:"";position:absolute;left:0;top:7px;width:5px;height:5px;
+    border-radius:50%;background:var(--line)}
+
+  /* ==== АДАПТИВ · узкие экраны ================================================ */
+  @media(max-width:1023px){ .weekpick{max-width:none} }
+  @media(max-width:640px){ .wt-full{display:none} .wt-short{display:inline} }
+  @media(max-width:1023px){ .seg-bar{display:none!important} }
+  @media(max-width:680px){
+    .cols{flex-direction:column}
+    .cols .sgcol + .sgcol{border-left:0;
+      border-top:1.5px dashed color-mix(in srgb,var(--ink) 26%,transparent)}
+  }
+  /* Телефон: попап во весь экран и максимально плотно, чтобы день
+     помещался по высоте без прокрутки. Подгруппы остаются в две колонки —
+     если их складывать друг под друга, высота удваивается. */
+  @media(max-width:640px){
+    .pop{padding:0}
+    .pop-card{width:100%;height:100%;max-height:100%;border-radius:0;border:0}
+    .pop-body{padding:0 8px 10px}
+    .pop-body .pair{grid-template-columns:42px 1fr;gap:7px;padding:5px 6px}
+    .pop-body .pair-time{font-size:10px}
+    .pop-body .pair-time .n{font-size:12px}
+    .pop-body .cols{flex-direction:row}
+    .pop-body .cols .sgcol{padding:6px 7px}
+    .pop-body .lesson{padding:6px 8px}
+    .pop-body .lesson .subj{font-size:12px;line-height:1.15}
+    .pop-body .lesson .meta{font-size:10.5px;gap:3px 7px;margin-top:3px}
+    .pop-body .pill{font-size:9.5px;padding:1px 6px}
+    .pop-body .row{flex-direction:column;align-items:flex-start;gap:4px}
+    /* аудитория строкой, а не крупной плашкой — она съедала половину ширины */
+    .pop-body .room-side{flex-direction:row;gap:4px;background:none;padding:0;width:auto}
+    .pop-body .room-side .rm{font-size:12px;font-family:inherit;font-weight:700}
+    .pop-body .room-side .rm .ic{width:12px;height:12px}
+  }
+  /* Телефон: месяц должен помещаться по высоте целиком.
+     Самая нагруженная ячейка — 6 строк, поэтому строки ужимаем, а не ячейку. */
+  @media(max-width:640px){
+    .mgrid{gap:4px;min-width:520px}
+    .mcell{min-height:0;padding:4px 5px;border-radius:9px}
+    .mcell .mn{font-size:10px;line-height:1.1}
+    .mline{font-size:9px;margin-top:1px;gap:3px}
+    .mabbr{width:28px;height:14px;font-size:8px}
+    .mtime{font-size:8px;min-width:22px}
+    .mgrid .mcell.quiet{padding:4px 2px}
+  }
   @media(max-width:640px){
     .pair{grid-template-columns:1fr;gap:5px}
+    /* колонка времени схлопывается в строку — время осталось бы дважды подряд,
+       поэтому слева оставляем только номер пары, время читается в карточке */
     .pair-time{display:flex;gap:8px;align-items:baseline}
+    .pair-time .t{display:none}
     .wk td.tm{width:44px}
   }
 </style>
@@ -518,6 +589,7 @@
     <path d="M13.4 17l-3 4h3l-2.4 3.6" stroke="var(--gold-ink)"/></symbol>
   <symbol id="i-fog" viewBox="0 0 24 24"><path d="M7 14.5h9.2a4.2 4.2 0 0 0 .6-8.4A6.2 6.2 0 0 0 5 8.8 3.4 3.4 0 0 0 7 14.5z" fill="var(--grey-soft)" stroke="var(--grey-ink)"/>
     <path d="M5 18h6M13.5 18h5.5M7.5 21h9" stroke="var(--grey-ink)"/></symbol>
+  <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="var(--blue-soft)" stroke="var(--blue-ink)"/><path d="M12 11v5" stroke="var(--blue-ink)"/><path d="M12 7.8h.01" stroke="var(--blue-ink)" stroke-width="2.4"/></symbol>
   <symbol id="i-thermo" viewBox="0 0 24 24"><path d="M13.5 14.2V5.5a2 2 0 1 0-4 0v8.7a4 4 0 1 0 4 0z" fill="var(--pink-soft)" stroke="var(--pink-ink)"/></symbol>
 </svg>
 <script>
@@ -555,7 +627,7 @@
         <div class="eyebrow">3 курс · 1 полугодие · 2026 / 2027</div>
         <div class="h1row">
           <h1 class="font-display">Расписание 3БИ1</h1>
-          <button id="theme" class="theme-btn" title="Тема оформления"><svg class="ic" aria-hidden="true"><use href="#i-auto"/></svg></button>
+          <button id="theme" class="theme-btn" title="Тема оформления" aria-label="Тема оформления"><svg class="ic" aria-hidden="true"><use href="#i-auto"/></svg></button>
         </div>
         <div class="sub" id="range-sub"></div>
       </div>
@@ -568,7 +640,7 @@
     <div class="side-head">
       <span class="dot"><svg class="ic" aria-hidden="true"><use href="#i-flower"/></svg></span>
       <span class="side-title">Расписание 3БИ1</span>
-      <button id="theme2" class="wnav" title="Тема оформления"><svg class="ic" aria-hidden="true"><use href="#i-auto"/></svg></button>
+      <button id="theme2" class="wnav" title="Тема оформления" aria-label="Тема оформления"><svg class="ic" aria-hidden="true"><use href="#i-auto"/></svg></button>
     </div>
     <div class="side-body">
     <div class="side-h">Поиск</div>
@@ -670,17 +742,17 @@
   </div>
 </div>
 
-<script src="data.js"></script>
 <script>
+/* ==== СОСТОЯНИЕ И КОНСТАНТЫ ================================================= */
 const DAYS=["Понедельник","Вторник","Среда","Четверг","Пятница","Суббота","Воскресенье"];
 const SHORT=["Пн","Вт","Ср","Чт","Пт","Сб","Вс"];
 const RU_MONTHS=["Январь","Февраль","Март","Апрель","Май","Июнь","Июль","Август","Сентябрь","Октябрь","Ноябрь","Декабрь"];
 const KEY="sched_state_v2";
-let DATA=window.SCHEDULE, DATE_MAP={}, MONTHS=[], SUGG=[];
-let st={view:"list",cur:0,scope:"week",from:"",to:"",term:"",fDay:"",fType:"",fTeachers:[],fSub:"",theme:"auto",side:"right",monthPtr:0};
+let DATA=null, DATE_MAP={}, MONTHS=[], SUGG=[];
+let st={view:"list",cur:0,scope:"week",from:"",to:"",term:"",fDay:"",fType:"",fTeachers:[],fSub:"",pop:null,theme:"auto",side:"right",monthPtr:0};
 const mq=window.matchMedia("(prefers-color-scheme: dark)");
 
-/* ---------- utils ---------- */
+/* ==== УТИЛИТЫ =============================================================== */
 const $=id=>document.getElementById(id);
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const esc=s=>(s||"").replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
@@ -700,6 +772,18 @@ function typeNorm(t){t=(t||"").toLowerCase();
 function typeColor(t){return{"Лекция":"var(--blue)","Практика":"var(--mint)","Семинар":"var(--lav)",
   "Лабораторная":"var(--gold)","Зачёт":"var(--pink)","Экзамен":"var(--pink)"}[t]||"var(--neutral-chip)";}
 
+// Подпись пары приходит двумя строками: номер и время.
+const PAIR_NL=String.fromCharCode(10);
+const lines=t=>String(t||"").split(PAIR_NL);
+// Время пары: если у занятия есть своё (по субботам 3-5 пары идут иначе) — берём его.
+// Сайт показывает сразу верное время, а не отсылает «смотри внутри ячейки», как таблица.
+const pairLabelTime=p=>(lines((p&&p.pair)||"")[1]||"").trim();
+const lessonTime=(l,p)=>((l&&l.spectime)||pairLabelTime(p)||"").trim();
+// одно время на всю пару, если все занятия в ней идут одновременно
+function pairTime(p,lessons){
+  const ts=[...new Set((lessons||[]).map(l=>lessonTime(l,p)).filter(Boolean))];
+  return ts.length===1?ts[0]:pairLabelTime(p);
+}
 function pairTimes(label,dt){const m=/(\d{1,2}):(\d{2})\D+(\d{1,2}):(\d{2})/.exec(label||"");if(!m||!dt)return null;
   const s=new Date(dt),e=new Date(dt);s.setHours(+m[1],+m[2],0,0);e.setHours(+m[3],+m[4],0,0);return[s,e];}
 const STOP=new Set(["в","и","по","на","с","о","для","к","от","до","при","за","из","под"]);
@@ -711,7 +795,7 @@ function centerToday(){requestAnimationFrame(()=>{
   if(!cont||!el)return;const cr=cont.getBoundingClientRect(),er=el.getBoundingClientRect();
   cont.scrollLeft+=(er.left-cr.left)-(cont.clientWidth-er.width)/2;});}
 
-/* ---------- prep ---------- */
+/* ==== ПОДГОТОВКА ДАННЫХ ===================================================== */
 function prep(){
   DATE_MAP={};MONTHS=[];const seen=new Set();
   DATA.weeks.forEach((w,wi)=>w.days.forEach((d,di)=>{
@@ -735,6 +819,27 @@ function prep(){
       if(!seen.has(mk)){seen.add(mk);MONTHS.push({y:d._dt.getFullYear(),m:d._dt.getMonth()});}}
   }));
   MONTHS.sort((a,b)=>a.y-b.y||a.m-b.m);
+  annotateDateConflicts();
+}
+
+/* Занятие может быть подписано своей датой — тогда в таблице оно стоит в строке
+   одного дня, а дата в тексте указывает на другой. Это противоречие в источнике,
+   и сайт его не разрешает: занятие остаётся там, где стоит в таблице, а рядом
+   появляется заметка, чтобы человек знал и уточнил. */
+function annotateDateConflicts(){
+  DATA.weeks.forEach(w=>w.days.forEach(d=>d.pairs.forEach(p=>{
+    p.lessons.forEach(l=>{
+      if(!l.dateOverride||l.dateOverride===d.date)return;
+      const dt=pdate(l.dateOverride);
+      const other=dt?DAYS[(dt.getDay()+6)%7]:"";
+      const src=(l.note||"").replace(/,?\s*см\.\s*прим\.\s*\d+\.?/i,"").trim();
+      l.note="В таблице занятие стоит в строке «"+d.day.toLowerCase()+"» ("+d.date+"), "
+        +"но подписано датой "+l.dateOverride+(other?" — это "+other.toLowerCase():"")+". "
+        +"В каком из двух дней оно на самом деле — по таблице не понять, уточни."
+        +(src?" "+src.charAt(0).toUpperCase()+src.slice(1)+".":"");
+      l.conflict=true;
+    });
+  })));
 }
 function allBounds(){let mn=null,mx=null;for(const k in DATE_MAP){}
   const all=[];DATA.weeks.forEach(w=>w.days.forEach(d=>{if(d._dt)all.push(d._dt);}));
@@ -743,7 +848,7 @@ function weekDates(i){const ds=DATA.weeks[i].days.map(d=>d._dt).filter(Boolean).
 function todayWeek(){const now=new Date();for(let i=0;i<DATA.weeks.length;i++){const[a,z]=weekDates(i);
   if(!a)continue;if(now<=eod(z))return i;}return DATA.weeks.length-1;}
 
-/* ---------- filters ---------- */
+/* ==== ФИЛЬТРЫ =============================================================== */
 function match(l){
   if(st.fType&&l.tn!==st.fType)return false;
   if(st.fTeachers.length&&!st.fTeachers.includes(l.teacher))return false;
@@ -762,14 +867,14 @@ function currentRange(){
   return[b[0],eod(b[1])];
 }
 
-/* ---------- now marks ---------- */
+/* ==== ТЕКУЩАЯ И БЛИЖАЙШАЯ ПАРА ============================================== */
 let _mark="";
 const markKey=m=>JSON.stringify([m.cur,m.next]);
 function nowMarks(){
   const now=new Date();let cur=null,next=null,best=Infinity;
   DATA.weeks.forEach((w,wi)=>w.days.forEach((d,di)=>{if(!d._dt)return;
     d.pairs.forEach((p,pi)=>{const real=p.lessons.filter(l=>!isSelf(l)&&l.subject);if(!real.length)return;
-      const t=pairTimes(p.pair,d._dt);if(!t)return;
+      const t=pairTimes(pairTime(p,real),d._dt);if(!t)return;
       if(now>=t[0]&&now<=t[1])cur={wi,di,pi};
       if(t[0]>now&&(t[0]-now)<best){best=t[0]-now;next={wi,di,pi};}});}));
   return{cur,next};
@@ -780,22 +885,26 @@ function markClass(wi,di,pi){
   if(M.next&&M.next.wi==wi&&M.next.di==di&&M.next.pi==pi)return" next";
   return"";}
 
-/* ---------- render helpers ---------- */
+/* ==== ОТРИСОВКА · кирпичики карточки ======================================== */
 function roomSide(l){
   return l.room?`<div class="room-side"><div class="rm"><svg class="ic" aria-hidden="true"><use href="#i-pin"/></svg> ${hl(l.room)}</div><div class="rl">аудитория</div></div>`:"";
 }
-function linfo(l){
+function linfo(l,timeText){
   const pills=[];
   if(l.tn)pills.push(`<span class="pill" style="background:${typeColor(l.tn)}">${hl(l.tn)}</span>`);
-  if(l.subgroup)pills.push(`<span class="pill sgtag sg${l.subgroup}">${l.subgroup}-я подгруппа</span>`);
-  if(l.spectime)pills.push(`<span class="pill pill-time">${l.spectime}</span>`);
+  if(l.subgroup)pills.push(`<span class="pill sg${l.subgroup}">${l.subgroup}-я подгруппа</span>`);
+
   const meta=[];
   if(l.teacher)meta.push(`<span><svg class="ic" aria-hidden="true"><use href="#i-user"/></svg> <b>${hl(l.teacher)}</b></span>`);
-  return `<div class="linfo"><div class="subj">${hl(l.subject)||"—"}</div>
+  const own=timeText?`<div class="l-time">${esc(timeText)}</div>`:"";
+  const note=l.note?`<details class="note"><summary><svg class="ic" aria-hidden="true"><use href="#i-info"/></svg>`
+    +`<span class="note-peek">${esc(l.note)}</span><span class="note-label">Заметка</span></summary>`
+    +`<div class="note-full">${esc(l.note)}</div></details>`:"";
+  return `<div class="linfo">${own}<div class="subj">${hl(l.subject)||"—"}</div>${note}
     ${pills.length?`<div class="meta">${pills.join(" ")}</div>`:""}
     ${meta.length?`<div class="meta">${meta.join("")}</div>`:""}</div>`;
 }
-function body(l){return `<div class="row">${linfo(l)}${roomSide(l)}</div>`;}
+function body(l,timeText){return `<div class="row">${linfo(l,timeText)}${roomSide(l)}</div>`;}
 // какой подгруппе принадлежит набор пар: "", одна из двух, либо обе (делим фон пополам)
 function sgTint(ls){
   const real=(ls||[]).filter(l=>!isSelf(l));
@@ -807,14 +916,14 @@ function sgTint(ls){
   if(set.size===1)return set.has("1")?" sgtint1":" sgtint2";
   return" sgtint0";                                // общая пара — смесь цветов
 }
-function lessonHTML(l){
+function lessonHTML(l,timeOf){
   const tint=sgTint([l]);
-  return `<div class="lesson${tint}"${tint?"":` style="border-left-color:${typeColor(l.tn)}"`}>${body(l)}</div>`;
+  return `<div class="lesson${tint}"${tint?"":` style="border-left-color:${typeColor(l.tn)}"`}>${body(l,timeOf?timeOf(l):"")}</div>`;
 }
-function pairBody(ls){
-  if(ls.length<=1)return ls.map(lessonHTML).join("");
+function pairBody(ls,timeOf){
+  if(ls.length<=1)return ls.map(l=>lessonHTML(l,timeOf)).join("");
   return `<div class="lesson group"><div class="cols">`
-    +ls.map(l=>`<div class="sgcol${sgTint([l])}">${body(l)}</div>`).join("")
+    +ls.map(l=>`<div class="sgcol${sgTint([l])}">${body(l,timeOf?timeOf(l):"")}</div>`).join("")
     +`</div></div>`;
 }
 function dayHTML(wi,w,di,d){
@@ -830,16 +939,22 @@ function dayHTML(wi,w,di,d){
   d.pairs.forEach((p,pi)=>{
     const ls=p.lessons.filter(l=>!isSelf(l)).filter(match);
     if(!ls.length)return;any=true;
-    const cls=markClass(wi,di,pi);const[n,tm]=(p.pair||"").split("\n");
+    const cls=markClass(wi,di,pi);
+    const n=(lines(p.pair)[0]||"");
+    // Время стоит на одном и том же месте в каждой карточке — глазу не надо
+    // его искать. Слева оно тоже есть: один интервал, а если у подгрупп время
+    // разное — оба, чтобы номер пары не оставался без времени.
+    const times=[...new Set(ls.map(l=>lessonTime(l,p)).filter(Boolean))];
+    const tm=times.join("<br>");
     const badge=cls.includes("now")?'<span class="badge-now">сейчас</span>':cls.includes("next")?'<span class="badge-next">ближайшая</span>':"";
-    rows+=`<div class="pair${cls}"><div class="pair-time"><span class="n">${n||""}</span>${tm||""}${badge}</div>
-      <div class="stack">${pairBody(ls)}</div></div>`;
+    rows+=`<div class="pair${cls}"><div class="pair-time"><span class="n">${n||""}</span><span class="t">${tm||""}</span>${badge}</div>
+      <div class="stack">${pairBody(ls,x=>lessonTime(x,p))}</div></div>`;
   });
   if(!any)return"";
   return `<section class="day${isToday?" today":""}">${head}${rows}</section>`;
 }
 
-/* ---------- views ---------- */
+/* ==== ОТРИСОВКА · список, неделя, месяц ===================================== */
 function renderList(){
   const[from,to]=currentRange();const multi=st.scope!=="week";let html="",found=false;
   DATA.weeks.forEach((w,wi)=>{
@@ -852,9 +967,9 @@ function renderList(){
   return found?html:`<div class="emptystate"><div class="big"><svg class="ic" aria-hidden="true"><use href="#i-cloudsun"/></svg></div>Ничего не нашлось. Попробуй сбросить фильтры.</div>`;
 }
 function renderWeek(){
-  const w=DATA.weeks[st.cur];const cols=[0,1,2,3,4,5];const now=new Date();
-  // четверг узкий — там только самостоятельная работа
-  let html=`<table class="wk"><colgroup><col style="width:64px">${cols.map(di=>di===3?`<col style="width:5%">`:"<col>").join("")}</colgroup><tr><th></th>`;
+  const w=DATA.weeks[st.cur];const now=new Date();
+  const cols=weekColumns(), quiet=quietDays();
+  let html=`<table class="wk"><colgroup><col style="width:64px">${cols.map(di=>quiet.has(di)?`<col style="width:5%">`:"<col>").join("")}</colgroup><tr><th></th>`;
   cols.forEach(di=>{const d=w.days[di];const t=sameDay(d._dt,now);
     html+=`<th class="${t?"today":""}">${SHORT[di]}<br><span style="font-weight:600;opacity:.7">${(d.date||"").slice(0,5)}</span></th>`;});
   html+="</tr>";
@@ -875,6 +990,30 @@ function renderWeek(){
   return '<div class="hscroll">'+html+"</table></div>";
 }
 // индекс месяца, в котором лежит выбранная неделя (чтобы не открывать пустой август)
+/* Какие дни показывать и какие сжимать — решают данные, а не номер дня.
+   У разных групп самостоятельная работа в разные дни, а пары могут быть
+   и в воскресенье, поэтому ничего нельзя прибивать к четвергу или к Пн-Сб. */
+function dayUsage(){
+  const real=new Set(), any=new Set();
+  DATA.weeks.forEach(w=>w.days.forEach((d,di)=>d.pairs.forEach(p=>
+    p.lessons.forEach(l=>{
+      any.add(di);
+      if(!isSelf(l)&&l.subject)real.add(di);
+    }))));
+  return{real,any};
+}
+/* Дни без обычных пар: самостоятельная работа или вовсе пусто.
+   Показываем узкой колонкой — место занимать им незачем. */
+function quietDays(){
+  const u=dayUsage();
+  return new Set([0,1,2,3,4,5,6].filter(di=>!u.real.has(di)));
+}
+/* Дни, которые вообще есть в расписании. Пустые не рисуем. */
+function weekColumns(){
+  const u=dayUsage();
+  return [0,1,2,3,4,5,6].filter(di=>u.any.has(di));
+}
+
 function monthOfWeek(wi){
   const d=(DATA.weeks[wi].days.find(x=>x._dt)||{})._dt;
   if(!d)return 0;
@@ -886,22 +1025,29 @@ function renderMonth(){
   st.monthPtr=clamp(st.monthPtr,0,MONTHS.length-1);
   const mo=MONTHS[st.monthPtr];const now=new Date();
   const first=new Date(mo.y,mo.m,1);const off=(first.getDay()+6)%7;const dim=new Date(mo.y,mo.m+1,0).getDate();
-  let html=`<div class="hscroll"><div class="mgrid">`+SHORT.map(s=>`<div class="mh">${s}</div>`).join("");
-  for(let i=0;i<off;i++)html+=`<div class="mcell empty"></div>`;
+  const quiet=quietDays();
+  let html="";
+  const widths=[0,1,2,3,4,5,6].map(i=>quiet.has(i)?".34fr":"1fr").join(" ");
+  html=`<div class="hscroll"><div class="mgrid" style="grid-template-columns:${widths}">`
+    +SHORT.map((s,i)=>`<div class="mh${quiet.has(i)?" quiet":""}">${s}</div>`).join("");
+  for(let i=0;i<off;i++)html+=`<div class="mcell empty${quiet.has(i)?" quiet":""}"></div>`;
   for(let day=1;day<=dim;day++){
     const dt=new Date(mo.y,mo.m,day);const ref=DATE_MAP[keyOf(dt)];const t=sameDay(dt,now);
-    if(!ref){html+=`<div class="mcell${t?" today":""}"><div class="mn">${day}</div></div>`;continue;}
+    const q=quiet.has((dt.getDay()+6)%7)?" quiet":"";
+    if(!ref){html+=`<div class="mcell${t?" today":""}${q}"><div class="mn">${day}</div></div>`;continue;}
     const d=DATA.weeks[ref.wi].days[ref.di];
     const self=d.pairs.some(p=>p.lessons.some(isSelf));
     const items=[];
-    d.pairs.forEach(p=>{const tm=(/(\d{1,2}:\d{2})/.exec(p.pair||"")||[])[1]||"";
-      p.lessons.filter(l=>!isSelf(l)).filter(match).forEach(l=>items.push({tm,l}));});
+    d.pairs.forEach(p=>{
+      p.lessons.filter(l=>!isSelf(l)).filter(match).forEach(l=>
+        items.push({tm:(/(\d{1,2}:\d{2})/.exec(lessonTime(l,p))||[])[1]||"",l}));});
     const lines=self
       ? `<div class="mline selfline"><svg class="ic" aria-hidden="true"><use href="#i-leaf"/></svg></div>`
       : items.map(({tm,l})=>`<div class="mline" title="${esc(l.subject)}${l.room?" · ауд. "+esc(l.room):""}${l.teacher?" · "+esc(l.teacher):""}">
-          <span class="mtime">${tm}</span><span class="mabbr" style="background:${typeColor(l.tn)}">${abbr(l.subject)}</span></div>`).join("");
+          <span class="mtime">${tm}</span><span class="mabbr" style="background:${typeColor(l.tn)}">${abbr(l.subject)}</span>`
+          +`${l.room?`<span class="mroom">${esc(l.room)}</span>`:""}</div>`).join("");
     const dayLessons=d.pairs.flatMap(p=>p.lessons).filter(match);
-    html+=`<div class="mcell${t?" today":""}${sgTint(dayLessons)}" data-day="${ref.di}" data-week="${ref.wi}"><div class="mn">${day}</div>${lines}</div>`;
+    html+=`<div class="mcell${t?" today":""}${q}${sgTint(dayLessons)}" data-day="${ref.di}" data-week="${ref.wi}"><div class="mn">${day}</div>${lines}</div>`;
   }
   return html+"</div></div>";
 }
@@ -931,8 +1077,38 @@ function fillPicker(){
   sel.style.paddingRight=(document.querySelector(".wsel-end").offsetWidth+14)+"px";
 }
 
-/* ---------- попап дня ---------- */
-function openDay(wi,di){
+/* Инфо-блок из шапки исходной таблицы: режем сплошной текст на отдельные факты.
+   Адрес выкидываем — студенты и так знают, где учатся. */
+function renderFooter(){
+  const raw=(DATA.notes||[]).filter(Boolean).join(" ").replace(/\s+/g," ").trim();
+  const items=raw
+    .split(/Прим\.\s*\d+:\s*/)
+    .flatMap(part=>part.split(/(?<=\.)\s+(?=[А-ЯЁA-Z])/))
+    // «Нечётная — с …, чётная — с …» это два факта, а не один: разносим по пунктам
+    .flatMap(x=>x.split(/,\s+(?=(?:чётная|нечётная|неделя)\b)/i))
+    .map(x=>x.trim().replace(/\s*\.\s*$/,""))
+    .map(x=>x?x.charAt(0).toUpperCase()+x.slice(1):x)
+    .filter(Boolean)
+    .filter(x=>!/Финуниверситета|Партизанская/i.test(x))
+    // это сайт показывает сам: время уже проставлено в расписании,
+    // а расхождение по дню видно заметкой у самого занятия
+    .filter(x=>!/указано внутри ячейки|исходном PDF|оставлено как в оригинале/i.test(x));
+  // Считаем занятия с заметками — и говорим, где их искать.
+  let noted=0;
+  DATA.weeks.forEach(w=>w.days.forEach(d=>d.pairs.forEach(p=>
+    p.lessons.forEach(l=>{if(l.note)noted++;}))));
+  if(noted)items.push("у отдельных пар есть заметка со значком — нажми на неё, "
+    +"чтобы прочитать целиком (сейчас таких пар: "+noted+")");
+  $("footer").innerHTML=`<div class="f-title">Про это расписание</div>
+    <ul class="f-list">${items.map(t=>`<li>${esc(t)}</li>`).join("")}</ul>`;
+}
+
+/* ==== ОТРИСОВКА · попап дня ================================================= */
+function openDay(wi,di){st.pop=[wi,di];save();renderDay();}
+function closeDay(){st.pop=null;save();renderDay();}
+function renderDay(){
+  if(!st.pop){$("daypop").classList.add("hidden");return;}
+  const [wi,di]=st.pop;
   const w=DATA.weeks[wi]; if(!w)return;
   const d=w.days[di]; if(!d)return;
   const saved=st.fDay; st.fDay="";                 // фильтр по дню внутри попапа не нужен
@@ -942,9 +1118,8 @@ function openDay(wi,di){
   $("daypop-body").innerHTML=html||`<div class="emptystate"><div class="big"><svg class="ic" aria-hidden="true"><use href="#i-cloudsun"/></svg></div>В этот день пар нет.</div>`;
   $("daypop").classList.remove("hidden");
 }
-function closeDay(){$("daypop").classList.add("hidden");}
 
-/* ---------- main render ---------- */
+/* ==== ОТРИСОВКА · сборка страницы =========================================== */
 function render(){
   M=nowMarks(); _mark=markKey(M);
   const c=$("content");
@@ -952,32 +1127,49 @@ function render(){
   else if(st.view==="week"){c.innerHTML=renderWeek();centerToday();}
   else{c.innerHTML=renderMonth();centerToday();}
   fillPicker();
+  renderDay();
   syncUI();
 }
 
-/* ---------- UI sync ---------- */
+/* ==== СИНХРОНИЗАЦИЯ ИНТЕРФЕЙСА ============================================== */
 function syncUI(){
   document.querySelectorAll("[data-view]").forEach(b=>b.classList.toggle("active",b.dataset.view===st.view));
   document.querySelectorAll("[data-scope]").forEach(b=>b.classList.toggle("active",b.dataset.scope===st.scope));
 }
-function hashWrite(){const p=new URLSearchParams();
-  p.set("v",st.view);p.set("w",st.cur);p.set("s",st.scope);
-  if(st.from)p.set("f",st.from);if(st.to)p.set("t",st.to);
-  if(st.term)p.set("q",st.term);if(st.fDay)p.set("d",st.fDay);
-  if(st.fType)p.set("ty",st.fType);if(st.fTeachers.length)p.set("te",st.fTeachers.join("~"));
-  if(st.fSub)p.set("sg",st.fSub);if(st.view==="month")p.set("m",st.monthPtr);
-  try{history.replaceState(null,"","#"+p.toString());}catch{location.hash=p.toString();}}
-function hashRead(){if(!location.hash||location.hash.length<2)return false;
+/* Состояние в адресе. Список полей описан один раз: и запись, и чтение
+   ходят по этой таблице, поэтому они не могут разъехаться. */
+const URL_FIELDS=[
+  {key:"v",  get:()=>st.view,                     set:v=>st.view=v,               always:true},
+  {key:"w",  get:()=>st.cur,                      set:v=>st.cur=+v,               always:true},
+  {key:"s",  get:()=>st.scope,                    set:v=>st.scope=v,              always:true},
+  {key:"f",  get:()=>st.from,                     set:v=>st.from=v||""},
+  {key:"t",  get:()=>st.to,                       set:v=>st.to=v||""},
+  {key:"q",  get:()=>st.term,                     set:v=>st.term=v||""},
+  {key:"d",  get:()=>st.fDay,                     set:v=>st.fDay=v||""},
+  {key:"ty", get:()=>st.fType,                    set:v=>st.fType=v||""},
+  {key:"te", get:()=>st.fTeachers.join("~"),      set:v=>st.fTeachers=(v||"").split("~").filter(Boolean)},
+  {key:"sg", get:()=>st.fSub,                     set:v=>st.fSub=v||""},
+  {key:"m",  get:()=>st.view==="month"?st.monthPtr:"", set:v=>st.monthPtr=+v},
+  {key:"p",  get:()=>st.pop?st.pop.join("."):"",  set:v=>{
+      const a=(v||"").split(".").map(Number);
+      st.pop=a.length===2&&a.every(n=>!isNaN(n))?a:null;}},
+];
+function hashWrite(){
+  const p=new URLSearchParams();
+  URL_FIELDS.forEach(f=>{const v=f.get();if(f.always||(v!==""&&v!=null))p.set(f.key,v);});
+  try{history.replaceState(null,"","#"+p.toString());}catch{location.hash=p.toString();}
+}
+function hashRead(){
+  if(!location.hash||location.hash.length<2)return false;
   const p=new URLSearchParams(location.hash.slice(1));
-  if(p.has("v"))st.view=p.get("v");if(p.has("w"))st.cur=+p.get("w");if(p.has("s"))st.scope=p.get("s");
-  st.from=p.get("f")||"";st.to=p.get("t")||"";st.term=p.get("q")||"";
-  st.fDay=p.get("d")||"";st.fType=p.get("ty")||"";st.fTeachers=(p.get("te")||"").split("~").filter(Boolean);st.fSub=p.get("sg")||"";
-  if(p.has("m"))st.monthPtr=+p.get("m");return true;}
+  URL_FIELDS.forEach(f=>{if(p.has(f.key)||!f.always)f.set(p.get(f.key));});
+  return true;
+}
 function flash(btn,msg){const o=btn.textContent;btn.textContent=msg;setTimeout(()=>btn.textContent=o,1600);}
 function save(){localStorage.setItem(KEY,JSON.stringify(st));hashWrite();}
 function load(){try{Object.assign(st,JSON.parse(localStorage.getItem(KEY)||"{}"));}catch{}}
 
-/* ---------- suggestions ---------- */
+/* ==== ПОДСКАЗКИ ПОИСКА ====================================================== */
 function showSugg(val){const box=$("suggbox");val=(val||"").trim().toLowerCase();
   if(val.length<2){box.classList.add("hidden");return;}
   const seen=new Set(),m=[];
@@ -987,7 +1179,7 @@ function showSugg(val){const box=$("suggbox");val=(val||"").trim().toLowerCase()
   box.innerHTML=m.map(s=>`<div class="sugg-item" data-v="${esc(s.v)}"><span class="si" style="background:${s.c}"></span>${hl(s.v)}<span class="sc">${s.kind}</span></div>`).join("");
   box.classList.remove("hidden");}
 
-/* ---------- controls ---------- */
+/* ==== УПРАВЛЕНИЕ · фильтры, тема, меню ====================================== */
 // подпись кнопки мультифильтра: «Все» / фамилия / «Выбрано N»
 function syncTeacherBtn(){
   const n=st.fTeachers.length;
@@ -999,23 +1191,38 @@ function buildTeacherFilter(list){
   syncTeacherBtn();
 }
 function opts(sel,arr,ph){sel.innerHTML=`<option value="">${ph}</option>`+arr.map(v=>`<option value="${v}">${v}</option>`).join("");}
-function initControls(){
-  const types=[...new Set(DATA.weeks.flatMap(w=>w.days.flatMap(d=>d.pairs.flatMap(p=>p.lessons.map(l=>l.tn)))).filter(Boolean))].sort();
-  const teachers=[...new Set(DATA.weeks.flatMap(w=>w.days.flatMap(d=>d.pairs.flatMap(p=>p.lessons.map(l=>l.teacher)))).filter(Boolean))].sort();
-  const subjects=[...new Set(DATA.weeks.flatMap(w=>w.days.flatMap(d=>d.pairs.flatMap(p=>p.lessons.map(l=>l.subject)))).filter(Boolean))];
-  opts($("f-day"),DAYS,"Все дни");opts($("f-type"),types,"Все типы");
+/* Справочники, собранные из данных: типы пар, преподаватели, предметы. */
+function collectDictionaries(){
+  const uniq=pick=>[...new Set(DATA.weeks.flatMap(w=>w.days.flatMap(
+    d=>d.pairs.flatMap(p=>p.lessons.map(pick)))))].filter(Boolean);
+  return{
+    types:uniq(l=>l.tn).sort(),
+    teachers:uniq(l=>l.teacher).sort(),
+    subjects:uniq(l=>l.subject),
+  };
+}
+
+/* Наполнение выпадающих списков и подсказок поиска. */
+function fillDictionaries(d){
+  opts($("f-day"),DAYS,"Все дни");
+  opts($("f-type"),d.types,"Все типы");
   opts($("f-sub"),["1","2"],"Все");
-  buildTeacherFilter(teachers);
-  SUGG=[...subjects.map(v=>({v,kind:"предмет",c:"var(--lav)"})),
-        ...teachers.map(v=>({v,kind:"препод",c:"var(--blue)"})),
-        ...types.map(v=>({v,kind:"тип",c:typeColor(v)}))];
-  // legend
-  $("legend").innerHTML=types.map(t=>`<span class="lg"><i style="background:${typeColor(t)}"></i>${t}</span>`).join("")
+  buildTeacherFilter(d.teachers);
+  SUGG=[...d.subjects.map(v=>({v,kind:"предмет",c:"var(--lav)"})),
+        ...d.teachers.map(v=>({v,kind:"препод",c:"var(--blue)"})),
+        ...d.types.map(v=>({v,kind:"тип",c:typeColor(v)}))];
+}
+
+/* Легенда над расписанием. */
+function fillLegend(d){
+  $("legend").innerHTML=d.types.map(t=>`<span class="lg"><i style="background:${typeColor(t)}"></i>${t}</span>`).join("")
     +`<span class="lg"><i style="background:var(--mint)"></i>Самост. работа</span>`
     +`<span class="lg"><i class="ring"></i>сегодня</span>`
     +`<span class="lg"><i class="ring now"></i>сейчас / ближайшая</span>`;
+}
 
-  // views + tabs
+/* Переключение вида и периода. */
+function bindViewButtons(){
   document.querySelectorAll("[data-view]").forEach(b=>b.onclick=()=>{
     if(b.dataset.view==="month"&&st.view!=="month")st.monthPtr=monthOfWeek(st.cur);
     st.view=b.dataset.view;save();render();closeNav();});
@@ -1023,24 +1230,30 @@ function initControls(){
   document.querySelectorAll("[data-scope]").forEach(b=>b.onclick=()=>{st.scope=b.dataset.scope;st.view="list";save();render();closeNav();});
   $("from").onchange=e=>{st.from=e.target.value;st.scope="custom";st.view="list";save();render();};
   $("to").onchange=e=>{st.to=e.target.value;st.scope="custom";st.view="list";save();render();};
+}
 
-  // week nav
+/* Селектор недели или месяца в шапке. */
+function bindPicker(){
   const goWeek=i=>{st.cur=clamp(i,0,DATA.weeks.length-1);st.scope="week";save();render();};
   const goMonth=i=>{st.monthPtr=clamp(i,0,MONTHS.length-1);save();render();};
   const step=d=>inMonth()?goMonth(st.monthPtr+d):goWeek(st.cur+d);
   $("week").onchange=e=>inMonth()?goMonth(+e.target.value):goWeek(+e.target.value);
   $("prev").onclick=()=>step(-1);
   $("next").onclick=()=>step(1);
+}
 
-  // search + подсказки
+/* Поиск и подсказки. */
+function bindSearch(d){
   $("q").oninput=e=>{st.term=e.target.value.trim().toLowerCase();showSugg(e.target.value);save();render();};
   $("q").onfocus=e=>{if(e.target.value.trim().length>=2)showSugg(e.target.value);};
   $("q").onblur=()=>setTimeout(()=>$("suggbox").classList.add("hidden"),150);
   $("q").addEventListener("keydown",e=>{if(e.key==="Escape")$("suggbox").classList.add("hidden");});
   $("suggbox").onclick=e=>{const it=e.target.closest(".sugg-item");if(!it)return;
     st.term=it.dataset.v.toLowerCase();$("q").value=it.dataset.v;$("suggbox").classList.add("hidden");save();render();};
+}
 
-  // filters
+/* Фильтры: день, тип, подгруппа, преподаватели. */
+function bindFilters(d){
   $("f-day").onchange=e=>{st.fDay=e.target.value;save();render();};
   $("f-type").onchange=e=>{st.fType=e.target.value;save();render();};
   $("f-teacher-btn").onclick=()=>{
@@ -1056,8 +1269,10 @@ function initControls(){
   $("reset").onclick=()=>{st.term=st.fDay=st.fType=st.fSub=st.from=st.to="";st.fTeachers=[];st.scope="week";
     $("f-teacher-list").querySelectorAll("input").forEach(x=>x.checked=false);syncTeacherBtn();
     ["q","f-day","f-type","f-sub","from","to"].forEach(id=>$(id).value="");save();render();};
+}
 
-  // theme (авто = как в системе)
+/* Тема: авто, светлая, тёмная. */
+function bindTheme(){
   function resolveTheme(){return st.theme==="auto"?(mq.matches?"dracula":"cupcake"):st.theme;}
   function applyTheme(){document.documentElement.setAttribute("data-theme",resolveTheme());
     const ic=st.theme==="auto"?"auto":st.theme==="dracula"?"moon":"sun";
@@ -1067,8 +1282,10 @@ function initControls(){
   $("theme").onclick=cycleTheme;if($("theme2"))$("theme2").onclick=cycleTheme;
   if(mq.addEventListener)mq.addEventListener("change",()=>{if(st.theme==="auto")applyTheme();});
   applyTheme();
+}
 
-  // сторона меню
+/* Сторона меню и его открытие. */
+function bindSideToggle(){
   function applySide(){document.body.classList.toggle("side-left",st.side==="left");
     layoutVars();
     $("sideseg").querySelectorAll("button").forEach(b=>b.classList.toggle("active",b.dataset.side===st.side));
@@ -1090,8 +1307,10 @@ function initControls(){
       setTimeout(show,60);
     },260);});
   applySide();
+}
 
-  // поделиться
+/* Копирование ссылки на текущий вид. */
+function bindShare(){
   $("share").onclick=async()=>{const url=location.href;try{
     if(navigator.share){await navigator.share({title:"Расписание 3БИ1",url});}
     else{await navigator.clipboard.writeText(url);flash($("share"),"✓ Скопировано");}
@@ -1099,8 +1318,10 @@ function initControls(){
 
   // burger
   $("burger").onclick=()=>setNav(!document.body.classList.contains("nav-open"));
+}
 
-  // клики по сетке: ячейка дня открывает попап, стрелки листают месяц
+/* Клики по сетке недели и месяца. */
+function bindGrid(){
   $("content").addEventListener("click",e=>{
     const cell=e.target.closest("[data-day]");
     if(cell){openDay(+cell.dataset.week,+cell.dataset.day);}
@@ -1108,15 +1329,33 @@ function initControls(){
   $("daypop-x").onclick=closeDay;
   $("daypop").onclick=e=>{if(e.target===$("daypop"))closeDay();};
   addEventListener("keydown",e=>{if(e.key==="Escape")closeDay();});
+}
 
-  // restore inputs from state
+/* Возврат значений в поля из состояния. */
+function restoreInputs(){
   $("q").value=st.term;$("f-day").value=st.fDay;$("f-type").value=st.fType;
   $("f-sub").value=st.fSub;$("from").value=st.from;$("to").value=st.to;
-  $("footer").innerHTML=(DATA.notes||[]).filter(Boolean).map(n=>`<div>${esc(n)}</div>`).join("");
+  renderFooter();
+}
+
+/* Оркестратор: собирает справочники и раздаёт обработчики по местам. */
+function initControls(){
+  const d=collectDictionaries();
+  fillDictionaries(d);
+  fillLegend(d);
+  bindViewButtons();
+  bindPicker();
+  bindSearch(d);
+  bindFilters(d);
+  bindTheme();
+  bindSideToggle();
+  bindShare();
+  bindGrid();
+  restoreInputs();
 }
 function closeNav(){setNav(false);}
 
-/* ---------- weather ---------- */
+/* ==== ПОГОДА ================================================================ */
 function wcode(c){const m={0:["sun","ясно"],1:["cloudsun","в основном ясно"],2:["cloudsun","переменная облачность"],
   3:["cloud","пасмурно"],45:["fog","туман"],48:["fog","туман"],
   51:["rain","морось"],53:["rain","морось"],55:["rain","морось"],
@@ -1160,7 +1399,8 @@ function advice({feels,code,wind=0,humidity=null,precip=null,uv=null,isDay=1}){
   // солнце и видимость
   if(isDay&&uv!=null&&uv>=6)out.push("солнце активное: крем");
   if(CODE_FOG.includes(code))out.push("туман: видно плохо");
-  return "Совет: "+out.slice(0,3).join(" · ");}
+  const text=out.slice(0,3).join(" · ");
+  return text?text.charAt(0).toUpperCase()+text.slice(1):"";}
 function weather(){
   const box=$("weather");
   const go=async(lat,lon,place)=>{try{
@@ -1183,8 +1423,15 @@ function weather(){
   go(54.9846,73.3729,"Омск");
 }
 
-/* ---------- раскладка ПК: [пусто][контент][меню][пусто] ---------- */
-const MENU_W=266, CONTENT_MAX=1040;
+/* ==== РАСКЛАДКА · панель и лист ============================================= */
+// Ширины берём из стилей: держать их в двух местах — верный способ забыть
+// поменять в одном. Палитра и размеры живут только в :root.
+const cssPx=(name,fallback)=>{
+  const v=getComputedStyle(document.documentElement).getPropertyValue(name);
+  const n=parseFloat(v);
+  return isNaN(n)?fallback:n;
+};
+const MENU_W=cssPx("--panelw",266), CONTENT_MAX=cssPx("--maxw",1040);
 /* Одна модель на все ширины:
      контент шириной min(1040, окно) стоит по центру окна;
      боковое поле = (окно - контент) / 2;
@@ -1227,26 +1474,64 @@ const _ro=new ResizeObserver(layoutVars);
 _ro.observe(document.documentElement);
 _ro.observe(document.querySelector(".ribbon"));
 
-/* ---------- boot ---------- */
-load();
-prep();
-const shared=hashRead();
-if(!["week","m1","custom"].includes(st.scope))st.scope="week";
-if(st.view==="month"&&!/[#&]m=/.test(location.hash))st.monthPtr=monthOfWeek(st.cur);
-if(!(st.cur>=0&&st.cur<DATA.weeks.length))st.cur=todayWeek();
-if(!shared&&!localStorage.getItem(KEY))st.cur=todayWeek();
-initControls();
-render();
-layoutVars();
-// анимации включаем, когда всё встало на места; таймер — страховка на случай,
-// если вкладка в фоне и кадры не выдаются
-const dropPreload=()=>document.documentElement.classList.remove("preload");
-requestAnimationFrame(()=>requestAnimationFrame(dropPreload));
-setTimeout(dropPreload,120);
-weather();
-// перерисовываем только когда сменилась текущая или ближайшая пара,
-// иначе страница дёргалась каждую минуту на ровном месте
-setInterval(()=>{if(markKey(nowMarks())!==_mark)render();},30000);
+/* ==== СТАРТ ================================================================= */
+
+/* Данные могут не приехать или оказаться битыми. Сайт от этого не ломается:
+   каркас остаётся на месте, а в области расписания показывается заглушка. */
+function schedulePlaceholder(text){
+  const c=$("content");
+  if(c)c.innerHTML='<div class="emptystate"><div class="big">'
+    +'<svg class="ic" aria-hidden="true"><use href="#i-cloudsun"/></svg></div>'+text+'</div>';
+  const legend=$("legend"); if(legend)legend.innerHTML="";
+  const footer=$("footer"); if(footer)footer.innerHTML="";
+  document.documentElement.classList.remove("preload");
+}
+function dataLooksValid(d){
+  return !!d && Array.isArray(d.weeks) && d.weeks.length>0
+    && d.weeks.every(w=>Array.isArray(w.days) && w.days.length>0
+      && w.days.every(day=>Array.isArray(day.pairs)));
+}
+
+async function boot(){
+  try{
+    const r=await fetch("data.json",{cache:"no-cache"});
+    if(!r.ok)throw new Error("HTTP "+r.status);
+    DATA=await r.json();
+  }catch(e){
+    console.error("Не удалось загрузить data.json:",e);
+    schedulePlaceholder("Здесь скоро появится расписание.");
+    return;
+  }
+  if(!dataLooksValid(DATA)){
+    schedulePlaceholder("Здесь скоро появится расписание.");
+    return;
+  }
+  try{
+    load();
+    prep();
+    const shared=hashRead();
+    if(!["week","m1","custom"].includes(st.scope))st.scope="week";
+    if(st.view==="month"&&!/[#&]m=/.test(location.hash))st.monthPtr=monthOfWeek(st.cur);
+    if(!(st.cur>=0&&st.cur<DATA.weeks.length))st.cur=todayWeek();
+    if(!shared&&!localStorage.getItem(KEY))st.cur=todayWeek();
+    initControls();
+    render();
+  }catch(e){
+    console.error("Ошибка при сборке страницы:",e);
+    schedulePlaceholder("Здесь скоро появится расписание.");
+    return;
+  }
+  layoutVars();
+  weather();
+  // перерисовываем только когда сменилась текущая или ближайшая пара
+  setInterval(()=>{if(markKey(nowMarks())!==_mark)render();},30000);
+  // анимации включаем, когда всё встало на места; таймер — страховка,
+  // если вкладка в фоне и кадры не выдаются
+  const dropPreload=()=>document.documentElement.classList.remove("preload");
+  requestAnimationFrame(()=>requestAnimationFrame(dropPreload));
+  setTimeout(dropPreload,120);
+}
+boot();
 </script>
 </body>
 </html>

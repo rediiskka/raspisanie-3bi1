@@ -18,7 +18,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 SITE = os.path.dirname(HERE)
 DEFAULT_XLSX = os.path.join(os.path.dirname(SITE),
                             "Расписание_3БИ1_1полугодие_2026-2027.xlsx")
-OUT = os.path.join(SITE, "data.js")
+OUT = os.path.join(SITE, "data.json")
 
 DAYS = ["Понедельник", "Вторник", "Среда", "Четверг",
         "Пятница", "Суббота", "Воскресенье"]
@@ -38,7 +38,9 @@ def parse_lesson(text):
         m = re.search(r"\((лекция|практика|семинар|лаборат[а-я]*|зач[её]т|экзамен)[^)]*\)",
                       chunk, re.I)
         ltype = m.group(1).lower() if m else ""
-        ma = re.search(r"ауд\.?\s*([0-9A-Za-zА-Яа-я/\-]+)", chunk, re.I)
+        # «ауд. не указана» — это отсутствие аудитории, а не аудитория «не»,
+        # поэтому номер берём только если он начинается с цифры
+        ma = re.search(r"ауд\.?\s*([0-9][0-9A-Za-zА-Яа-я/\-]*)", chunk, re.I)
         room = ma.group(1) if ma else ""
         mg = re.search(r"([12])\s*подгруппа", chunk, re.I)
         subgroup = mg.group(1) if mg else ""
@@ -55,16 +57,22 @@ def parse_lesson(text):
             body.pop(0)
         subj = re.sub(r"^\[[^\]]*\]\s*", "", body[0]) if body else ""
         subj = re.sub(r"\s*\([^)]*\)\s*$", "", subj).strip()
-        special = False
-        md = re.match(r"^\d{2}\.\d{2}\.\d{4}\s*[—-]\s*(.+)$", subj)
+        # Занятие может быть подписано своей датой — значит в таблице оно стоит
+        # не в своей клетке. Парсер только сохраняет дату, раскладывает уже сайт.
+        date_override = ""
+        md = re.match(r"^(\d{2}\.\d{2}\.\d{4})\s*[—-]\s*(.+)$", subj)
         if md:
-            subj = md.group(1).strip()
-            special = True
+            date_override = md.group(1)
+            subj = md.group(2).strip()
         mtm = re.search(r"\[([0-9]{1,2}:[0-9]{2}[^\]]*)\]", chunk)
+        # пояснение в скобках отдельной строкой — это заметка к занятию
+        mn = re.search(r"^\((.+)\)$", lines[-1].strip()) if lines else None
+        note = mn.group(1).strip() if mn else ""
         lessons.append({
             "subject": subj, "type": ltype, "teacher": teacher, "room": room,
             "subgroup": subgroup, "spectime": mtm.group(1) if mtm else "",
-            "special": special, "raw": chunk,
+            # поля для ручных правок: перенос на другую дату и заметка со значком
+            "dateOverride": date_override, "note": note, "raw": chunk,
         })
     return lessons
 
@@ -102,10 +110,8 @@ def main():
     if not os.path.exists(xlsx):
         sys.exit("Не найден файл Excel: " + xlsx)
     data = build(xlsx)
-    payload = json.dumps(data, ensure_ascii=False, separators=(",", ":"))
     with open(OUT, "w", encoding="utf-8") as f:
-        f.write("// Данные расписания. Сгенерировано tools/build_data.py — вручную не редактировать.\n")
-        f.write("window.SCHEDULE = " + payload + ";\n")
+        json.dump(data, f, ensure_ascii=False, separators=(",", ":"))
     n = sum(len(p["lessons"]) for w in data["weeks"] for dd in w["days"] for p in dd["pairs"])
     print("Готово:", OUT)
     print("Недель:", len(data["weeks"]), "| занятий:", n)
