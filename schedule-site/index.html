@@ -351,7 +351,8 @@
   .cols .sgcol .row{flex:1}
   /* время внутри карточки — когда у подгрупп оно разное; выглядит так же,
      как время слева, чтобы расписание читалось одним языком */
-  .l-time{color:var(--muted);font-weight:700;font-size:12.5px;margin-bottom:4px;letter-spacing:.01em}
+  .l-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px}
+  .l-time{color:var(--muted);font-weight:700;font-size:12.5px;letter-spacing:.01em}
   /* заметка к занятию: свёрнута, раскрывается по клику */
   .note{margin-top:6px;font-size:12px;color:var(--muted)}
   .note summary{display:flex;align-items:center;gap:5px;cursor:pointer;
@@ -893,11 +894,13 @@ function roomSide(l){
 function linfo(l,timeText){
   const pills=[];
   if(l.tn)pills.push(`<span class="pill" style="background:${typeColor(l.tn)}">${hl(l.tn)}</span>`);
-  if(l.subgroup)pills.push(`<span class="pill sg${l.subgroup}">${l.subgroup}-я подгруппа</span>`);
+
 
   const meta=[];
   if(l.teacher)meta.push(`<span><svg class="ic" aria-hidden="true"><use href="#i-user"/></svg> <b>${hl(l.teacher)}</b></span>`);
-  const own=timeText?`<div class="l-time">${esc(timeText)}</div>`:"";
+  // время и подгруппа — одна строка «когда и у кого», выше названия
+  const sg=l.subgroup?`<span class="pill sg${l.subgroup}">${l.subgroup}-я подгруппа</span>`:"";
+  const own=(timeText||sg)?`<div class="l-head">${timeText?`<span class="l-time">${esc(timeText)}</span>`:""}${sg}</div>`:"";
   const note=l.note?`<details class="note"><summary><svg class="ic" aria-hidden="true"><use href="#i-info"/></svg>`
     +`<span class="note-peek">${esc(l.note)}</span><span class="note-label">Заметка</span></summary>`
     +`<div class="note-full">${esc(l.note)}</div></details>`:"";
