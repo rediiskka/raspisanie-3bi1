@@ -490,7 +490,20 @@
 
   /* ==== ЛЕГЕНДА, ПОДВАЛ ======================================================= */
   /* legend */
-  .legend{display:flex;flex-wrap:wrap;gap:6px 14px;padding:8px 0 2px}
+  /* легенда слева, кнопка сохранения справа на её уровне */
+  .legend-row{display:flex;align-items:flex-start;justify-content:space-between;gap:16px}
+  .legend{padding:8px 0 2px;min-width:0}
+  .png-btn{flex:none;width:auto;margin-top:8px;white-space:nowrap}
+  @media(max-width:640px){
+    .legend-row{flex-direction:column;gap:6px}
+    .png-btn{margin-top:0;align-self:flex-start}
+  }
+  .lg-row{display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px}
+  .lg-row+.lg-row{margin-top:5px}
+  .lg-title{font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.06em;
+    text-transform:uppercase}
+  .lg i.fill{width:16px;height:12px;border-radius:4px;border:1px solid var(--line)}
+  .lg i.fill.sg-both{background:linear-gradient(90deg,var(--sg1) 0 45%,var(--sg2) 55% 100%)}
   .lg{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--muted)}
   .lg i{width:12px;height:12px;border-radius:50%;display:inline-block}
   .lg i.ring{background:transparent!important;border:2px solid var(--gold)}
@@ -595,6 +608,7 @@
     <path d="M13.4 17l-3 4h3l-2.4 3.6" stroke="var(--gold-ink)"/></symbol>
   <symbol id="i-fog" viewBox="0 0 24 24"><path d="M7 14.5h9.2a4.2 4.2 0 0 0 .6-8.4A6.2 6.2 0 0 0 5 8.8 3.4 3.4 0 0 0 7 14.5z" fill="var(--grey-soft)" stroke="var(--grey-ink)"/>
     <path d="M5 18h6M13.5 18h5.5M7.5 21h9" stroke="var(--grey-ink)"/></symbol>
+  <symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="3" fill="var(--blue-soft)" stroke="var(--blue-ink)"/><circle cx="8.5" cy="10" r="1.6" fill="var(--gold)" stroke="none"/><path d="M4.5 17l4.5-4.5 3.5 3.5 2.5-2.5 4.5 4" stroke="var(--blue-ink)"/></symbol>
   <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="var(--blue-soft)" stroke="var(--blue-ink)"/><path d="M12 11v5" stroke="var(--blue-ink)"/><path d="M12 7.8h.01" stroke="var(--blue-ink)" stroke-width="2.4"/></symbol>
   <symbol id="i-thermo" viewBox="0 0 24 24"><path d="M13.5 14.2V5.5a2 2 0 1 0-4 0v8.7a4 4 0 1 0 4 0z" fill="var(--pink-soft)" stroke="var(--pink-ink)"/></symbol>
 </svg>
@@ -731,7 +745,11 @@
       </div>
     </div>
 
-    <div class="wrap"><div id="legend" class="legend"></div></div>
+    <div class="wrap legend-row">
+      <div id="legend" class="legend"></div>
+      <button id="png" class="actbtn png-btn" title="Сохранить текущий вид картинкой">
+        <svg class="ic" aria-hidden="true"><use href="#i-image"/></svg> Скачать PNG</button>
+    </div>
     <main class="wrap"><div id="content"></div></main>
     <div class="wrap"><footer id="footer"></footer></div>
   </div>
@@ -1223,11 +1241,18 @@ function fillDictionaries(d){
 }
 
 /* Легенда над расписанием. */
+/* Легенда объясняет две разные вещи: цвет плашки — это тип пары,
+   а цвет фона карточки — подгруппа. Без второго ряда фон читается как украшение. */
 function fillLegend(d){
-  $("legend").innerHTML=d.types.map(t=>`<span class="lg"><i style="background:${typeColor(t)}"></i>${t}</span>`).join("")
-    +`<span class="lg"><i style="background:var(--mint)"></i>Самост. работа</span>`
+  const type=d.types.map(t=>`<span class="lg"><i style="background:${typeColor(t)}"></i>${t}</span>`).join("")
     +`<span class="lg"><i class="ring"></i>сегодня</span>`
     +`<span class="lg"><i class="ring now"></i>сейчас / ближайшая</span>`;
+  const fill=`<span class="lg-title">Фон карточки</span>`
+    +`<span class="lg"><i class="fill" style="background:var(--sg1)"></i>1-я подгруппа</span>`
+    +`<span class="lg"><i class="fill" style="background:var(--sg2)"></i>2-я подгруппа</span>`
+    +`<span class="lg"><i class="fill sg-both"></i>обе подгруппы</span>`
+    +`<span class="lg"><i class="fill" style="background:var(--sg0)"></i>пара у всех</span>`;
+  $("legend").innerHTML=`<div class="lg-row">${type}</div><div class="lg-row">${fill}</div>`;
 }
 
 /* Переключение вида и периода. */
@@ -1319,6 +1344,14 @@ function bindSideToggle(){
 }
 
 /* Копирование ссылки на текущий вид. */
+function bindPNG(){
+  $("png").onclick = () => {
+    if (st.view === "list") { flash($("png"), "Только неделя и месяц"); return; }
+    flash($("png"), "Готовлю…");
+    exportPNG();
+  };
+}
+
 function bindShare(){
   $("share").onclick=async()=>{const url=location.href;try{
     if(navigator.share){await navigator.share({title:"Расписание 3БИ1",url});}
@@ -1359,6 +1392,7 @@ function initControls(){
   bindTheme();
   bindSideToggle();
   bindShare();
+  bindPNG();
   bindGrid();
   restoreInputs();
 }
@@ -1482,6 +1516,347 @@ function setNav(open){document.body.classList.toggle("nav-open",open);applyShift
 const _ro=new ResizeObserver(layoutVars);
 _ro.observe(document.documentElement);
 _ro.observe(document.querySelector(".ribbon"));
+
+/* ==== ЭКСПОРТ В PNG ================================================== */
+
+/* Картинка рисуется на canvas, а не снимается со страницы: так не нужны
+   внешние библиотеки, а в файл попадает ровно то, что нужно — заголовок,
+   период, сетка и легенда с пояснением про фон. */
+
+const PNG = {
+  pad: 28, gap: 6, radius: 10,
+  head: 90,                    // колонка с номером пары
+  col: 168, colNarrow: 62,     // ширина колонки дня
+  line: 20, cellPad: 8,
+  scale: 2,                    // ретина
+  sans: '600 13px "Manrope", "Segoe UI", system-ui, sans-serif',
+};
+
+/* Цвета берём из палитры страницы: экспорт совпадает с тем, что видно. */
+function pngPalette(){
+  const cs = getComputedStyle(document.documentElement);
+  const v = n => cs.getPropertyValue(n).trim();
+  const mix = (color, pct) => {
+    const probe = document.createElement("div");
+    probe.style.cssText = "position:absolute;visibility:hidden;background:" +
+      `color-mix(in srgb, ${color} ${pct}, ${v("--panel")})`;
+    document.body.appendChild(probe);
+    const out = getComputedStyle(probe).backgroundColor;
+    probe.remove();
+    return out;
+  };
+  const strength = v("--sg-strength") || "38%";
+  return {
+    ink: v("--ink"), muted: v("--muted"), line: v("--line"),
+    panel: v("--panel"), bg: v("--app-bg"), onAccent: v("--on-accent"),
+    sg: {
+      "1": mix(v("--sg1"), strength),
+      "2": mix(v("--sg2"), strength),
+      "0": mix(v("--sg0"), v("--sg0-strength") || strength),
+    },
+    sgPure: { "1": v("--sg1"), "2": v("--sg2"), "0": v("--sg0") },
+    type: t => {
+      const map = { "Лекция": "--blue", "Практика": "--mint", "Семинар": "--lav",
+                    "Лабораторная": "--gold", "Зачёт": "--pink", "Экзамен": "--pink" };
+      return v(map[t] || "--neutral-chip");
+    },
+  };
+}
+
+function roundRect(ctx, x, y, w, h, r){
+  ctx.beginPath();
+  ctx.roundRect(x, y, w, h, r);
+}
+
+/* Обрезает текст по ширине, добавляя многоточие. */
+function fitText(ctx, text, maxWidth){
+  if (ctx.measureText(text).width <= maxWidth) return text;
+  let cut = text;
+  while (cut.length > 1 && ctx.measureText(cut + "…").width > maxWidth) cut = cut.slice(0, -1);
+  return cut + "…";
+}
+
+function drawChip(ctx, x, y, text, bg, fg, pal){
+  ctx.font = '800 11px "Manrope", "Segoe UI", system-ui, sans-serif';
+  const w = Math.max(34, ctx.measureText(text).width + 14);
+  ctx.fillStyle = bg;
+  roundRect(ctx, x, y, w, 17, 8.5);
+  ctx.fill();
+  ctx.fillStyle = fg || pal.onAccent;
+  ctx.textBaseline = "middle";
+  ctx.fillText(text, x + 7, y + 9);
+  return w;
+}
+
+/* Строки одной клетки: время, сокращение предмета, аудитория. */
+function cellLines(pair){
+  const real = pair.lessons.filter(l => !isSelf(l) && l.subject).filter(match);
+  if (!real.length && pair.lessons.some(isSelf)) return [{ self: true }];
+  return real.map(l => ({
+    time: (/(\d{1,2}:\d{2})/.exec(lessonTime(l, pair)) || [])[1] || "",
+    abbr: abbr(l.subject), room: l.room || "", type: l.tn, sub: l.subgroup,
+  }));
+}
+
+function drawCellLines(ctx, lines, x, y, width, pal){
+  lines.forEach((ln, i) => {
+    const top = y + i * PNG.line;
+    if (ln.self){
+      ctx.font = PNG.sans;
+      ctx.fillStyle = pal.muted;
+      ctx.textBaseline = "middle";
+      ctx.fillText("самост.", x, top + 9);
+      return;
+    }
+    let cx = x;
+    if (ln.time){
+      ctx.font = '700 10px "Manrope", "Segoe UI", system-ui, sans-serif';
+      ctx.fillStyle = pal.ink;
+      ctx.textBaseline = "middle";
+      ctx.fillText(ln.time, cx, top + 9);
+      cx += 30;
+    }
+    cx += drawChip(ctx, cx, top, ln.abbr, pal.type(ln.type), null, pal) + 5;
+    if (ln.room){
+      ctx.font = '700 10px "Manrope", "Segoe UI", system-ui, sans-serif';
+      ctx.fillStyle = pal.muted;
+      ctx.fillText(fitText(ctx, ln.room, x + width - cx), cx, top + 9);
+    }
+  });
+}
+
+/* Заливка клетки по подгруппам — тот же смысл, что на сайте. */
+function cellFill(ctx, pair, x, y, w, h, pal){
+  const real = pair.lessons.filter(l => !isSelf(l) && l.subject).filter(match);
+  if (!real.length) return pal.panel;
+  const subs = [...new Set(real.map(l => l.subgroup).filter(Boolean))];
+  if (!subs.length) return pal.sg["0"];
+  if (subs.length === 1) return pal.sg[subs[0]];
+  const grad = ctx.createLinearGradient(x, 0, x + w, 0);
+  const first = real.find(l => l.subgroup).subgroup;
+  grad.addColorStop(0, pal.sg[first]);
+  grad.addColorStop(0.24, pal.sg[first]);
+  grad.addColorStop(0.76, pal.sg[first === "1" ? "2" : "1"]);
+  grad.addColorStop(1, pal.sg[first === "1" ? "2" : "1"]);
+  return grad;
+}
+
+function drawTitle(ctx, x, y, width, title, subtitle, pal){
+  ctx.textBaseline = "alphabetic";
+  ctx.font = '600 26px Georgia, "Times New Roman", serif';
+  ctx.fillStyle = pal.ink;
+  ctx.fillText(title, x, y + 24);
+  ctx.font = PNG.sans;
+  ctx.fillStyle = pal.muted;
+  ctx.fillText(subtitle, x, y + 46);
+  return 62;
+}
+
+/* Легенда: тип пары — цвет плашки, подгруппа — цвет фона. */
+function drawLegend(ctx, x, y, pal, types){
+  ctx.textBaseline = "middle";
+  let cx = x, cy = y;
+  ctx.font = PNG.sans;
+  types.forEach(t => {
+    ctx.fillStyle = pal.type(t);
+    ctx.beginPath(); ctx.arc(cx + 6, cy + 8, 6, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = pal.muted;
+    ctx.fillText(t, cx + 18, cy + 8);
+    cx += 18 + ctx.measureText(t).width + 18;
+  });
+
+  cy += 26; cx = x;
+  ctx.font = '700 11px "Manrope", "Segoe UI", system-ui, sans-serif';
+  ctx.fillStyle = pal.muted;
+  ctx.fillText("ФОН КАРТОЧКИ", cx, cy + 8);
+  cx += ctx.measureText("ФОН КАРТОЧКИ").width + 16;
+
+  const swatch = (fill, label) => {
+    ctx.fillStyle = fill;
+    roundRect(ctx, cx, cy + 2, 18, 12, 4); ctx.fill();
+    ctx.strokeStyle = pal.line; ctx.lineWidth = 1; ctx.stroke();
+    ctx.font = PNG.sans; ctx.fillStyle = pal.muted;
+    ctx.fillText(label, cx + 24, cy + 8);
+    cx += 24 + ctx.measureText(label).width + 18;
+  };
+  swatch(pal.sg["1"], "1-я подгруппа");
+  swatch(pal.sg["2"], "2-я подгруппа");
+  const both = ctx.createLinearGradient(cx, 0, cx + 18, 0);
+  both.addColorStop(0, pal.sg["1"]); both.addColorStop(0.5, pal.sg["1"]);
+  both.addColorStop(0.5, pal.sg["2"]); both.addColorStop(1, pal.sg["2"]);
+  swatch(both, "обе подгруппы");
+  swatch(pal.sg["0"], "пара у всех");
+  return 52;
+}
+
+function newCanvas(width, height){
+  const c = document.createElement("canvas");
+  c.width = width * PNG.scale;
+  c.height = height * PNG.scale;
+  const ctx = c.getContext("2d");
+  ctx.scale(PNG.scale, PNG.scale);
+  return { canvas: c, ctx };
+}
+
+/* ---- неделя ---- */
+function drawWeekPNG(){
+  const pal = pngPalette();
+  const w = DATA.weeks[st.cur];
+  const cols = weekColumns(), quiet = quietDays();
+  const width = PNG.pad * 2 + PNG.head +
+    cols.reduce((s, di) => s + (quiet.has(di) ? PNG.colNarrow : PNG.col) + PNG.gap, 0);
+
+  const rows = [];
+  for (let pi = 0; pi < 7; pi++){
+    const lines = cols.map(di => cellLines(w.days[di].pairs[pi]));
+    const max = Math.max(1, ...lines.map(l => l.length));
+    rows.push({ pi, lines, height: Math.max(46, max * PNG.line + PNG.cellPad * 2) });
+  }
+
+  const gridTop = PNG.pad + 62 + 30;
+  const gridHeight = rows.reduce((s, r) => s + r.height + PNG.gap, 0);
+  const height = gridTop + gridHeight + 16 + 52 + PNG.pad;
+
+  const { canvas, ctx } = newCanvas(width, height);
+  ctx.fillStyle = pal.bg;
+  ctx.fillRect(0, 0, width, height);
+
+  drawTitle(ctx, PNG.pad, PNG.pad, width,
+    (DATA.title || "").split("(")[0].trim() || "Расписание",
+    "Неделя " + (st.cur + 1) + " · " + w.range + " · " + (w.odd ? "нечётная" : "чётная"), pal);
+
+  // шапка с днями
+  let x = PNG.pad + PNG.head;
+  ctx.textAlign = "center";
+  cols.forEach(di => {
+    const cw = quiet.has(di) ? PNG.colNarrow : PNG.col;
+    ctx.font = PNG.sans; ctx.fillStyle = pal.muted; ctx.textBaseline = "middle";
+    ctx.fillText(SHORT[di], x + cw / 2, gridTop - 20);
+    ctx.font = '600 11px "Manrope", "Segoe UI", system-ui, sans-serif';
+    ctx.fillText((w.days[di].date || "").slice(0, 5), x + cw / 2, gridTop - 6);
+    x += cw + PNG.gap;
+  });
+  ctx.textAlign = "left";
+
+  let y = gridTop;
+  rows.forEach(row => {
+    const label = (w.days[cols[0]].pairs[row.pi].pair || "").split(PAIR_NL);
+    ctx.textAlign = "center";
+    ctx.font = '700 13px "Manrope", "Segoe UI", system-ui, sans-serif';
+    ctx.fillStyle = pal.ink; ctx.textBaseline = "middle";
+    ctx.fillText((label[0] || "").replace(" пара", ""), PNG.pad + PNG.head / 2, y + 16);
+    ctx.font = '600 11px "Manrope", "Segoe UI", system-ui, sans-serif';
+    ctx.fillStyle = pal.muted;
+    ctx.fillText(label[1] || "", PNG.pad + PNG.head / 2, y + 32);
+    ctx.textAlign = "left";
+
+    let cx = PNG.pad + PNG.head;
+    cols.forEach((di, ci) => {
+      const cw = quiet.has(di) ? PNG.colNarrow : PNG.col;
+      const pair = w.days[di].pairs[row.pi];
+      ctx.fillStyle = cellFill(ctx, pair, cx, y, cw, row.height, pal);
+      roundRect(ctx, cx, y, cw, row.height, PNG.radius); ctx.fill();
+      ctx.strokeStyle = pal.line; ctx.lineWidth = 1; ctx.stroke();
+      drawCellLines(ctx, row.lines[ci], cx + PNG.cellPad, y + PNG.cellPad, cw - PNG.cellPad * 2, pal);
+      cx += cw + PNG.gap;
+    });
+    y += row.height + PNG.gap;
+  });
+
+  const types = collectDictionaries().types;
+  drawLegend(ctx, PNG.pad, y + 12, pal, types);
+  return canvas;
+}
+
+/* ---- месяц ---- */
+function drawMonthPNG(){
+  const pal = pngPalette();
+  const mo = MONTHS[st.monthPtr];
+  const quiet = quietDays();
+  const widths = [0,1,2,3,4,5,6].map(i => quiet.has(i) ? PNG.colNarrow : PNG.col);
+  const width = PNG.pad * 2 + widths.reduce((s, w) => s + w + PNG.gap, 0);
+
+  const first = new Date(mo.y, mo.m, 1);
+  const off = (first.getDay() + 6) % 7;
+  const dim = new Date(mo.y, mo.m + 1, 0).getDate();
+  const cells = [];
+  for (let i = 0; i < off; i++) cells.push(null);
+  for (let d = 1; d <= dim; d++){
+    const dt = new Date(mo.y, mo.m, d);
+    const ref = DATE_MAP[keyOf(dt)];
+    const day = ref ? DATA.weeks[ref.wi].days[ref.di] : null;
+    // день самостоятельной работы — одна строка на клетку, а не по строке на пару
+    let lines = day ? day.pairs.flatMap(p => cellLines(p)).filter(Boolean) : [];
+    if (lines.some(l => l.self)) lines = [{ self: true }];
+    cells.push({ d, day, lines });
+  }
+  while (cells.length % 7) cells.push(null);
+
+  const rowsCount = cells.length / 7;
+  const rowHeights = [];
+  for (let r = 0; r < rowsCount; r++){
+    const slice = cells.slice(r * 7, r * 7 + 7);
+    const max = Math.max(1, ...slice.map(c => (c ? c.lines.length : 0)));
+    rowHeights.push(Math.max(58, 20 + max * PNG.line + PNG.cellPad));
+  }
+
+  const gridTop = PNG.pad + 62 + 24;
+  const height = gridTop + rowHeights.reduce((s, h) => s + h + PNG.gap, 0) + 16 + 52 + PNG.pad;
+  const { canvas, ctx } = newCanvas(width, height);
+  ctx.fillStyle = pal.bg; ctx.fillRect(0, 0, width, height);
+
+  drawTitle(ctx, PNG.pad, PNG.pad, width,
+    (DATA.title || "").split("(")[0].trim() || "Расписание",
+    RU_MONTHS[mo.m] + " " + mo.y, pal);
+
+  let x = PNG.pad;
+  ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  ctx.font = '700 12px "Manrope", "Segoe UI", system-ui, sans-serif';
+  ctx.fillStyle = pal.muted;
+  SHORT.forEach((s, i) => { ctx.fillText(s, x + widths[i] / 2, gridTop - 10); x += widths[i] + PNG.gap; });
+  ctx.textAlign = "left";
+
+  let y = gridTop;
+  for (let r = 0; r < rowsCount; r++){
+    let cx = PNG.pad;
+    for (let c = 0; c < 7; c++){
+      const cell = cells[r * 7 + c], cw = widths[c], ch = rowHeights[r];
+      if (cell){
+        const pairs = cell.day ? cell.day.pairs : [];
+        const all = { lessons: pairs.flatMap(p => p.lessons) };
+        ctx.fillStyle = cellFill(ctx, all, cx, y, cw, ch, pal);
+        roundRect(ctx, cx, y, cw, ch, PNG.radius); ctx.fill();
+        ctx.strokeStyle = pal.line; ctx.lineWidth = 1; ctx.stroke();
+        ctx.font = '700 11px "Manrope", "Segoe UI", system-ui, sans-serif';
+        ctx.fillStyle = pal.muted; ctx.textBaseline = "middle";
+        ctx.fillText(String(cell.d), cx + PNG.cellPad, y + 12);
+        drawCellLines(ctx, cell.lines, cx + PNG.cellPad, y + 20, cw - PNG.cellPad * 2, pal);
+      }
+      cx += cw + PNG.gap;
+    }
+    y += rowHeights[r] + PNG.gap;
+  }
+
+  drawLegend(ctx, PNG.pad, y + 12, pal, collectDictionaries().types);
+  return canvas;
+}
+
+/* Оркестратор: выбирает вид, рисует и отдаёт файл. */
+function exportPNG(){
+  const month = inMonth();
+  const canvas = month ? drawMonthPNG() : drawWeekPNG();
+  const w = DATA.weeks[st.cur];
+  const name = month
+    ? "Расписание " + RU_MONTHS[MONTHS[st.monthPtr].m] + " " + MONTHS[st.monthPtr].y
+    : "Расписание неделя " + (st.cur + 1) + " " + (w.range || "").replace(/\s/g, "");
+  canvas.toBlob(blob => {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = name + ".png";
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }, "image/png");
+}
 
 /* ==== СТАРТ ================================================================= */
 
