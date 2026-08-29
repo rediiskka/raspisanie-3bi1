@@ -1,7 +1,6 @@
 # служебное от инструментов
 .playwright-mcp/
 *.png
-!schedule-site/assets/*.png
 
 # python
 __pycache__/
