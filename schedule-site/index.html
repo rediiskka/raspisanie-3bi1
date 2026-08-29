@@ -420,23 +420,24 @@
   /* month */
   /* Дни без обычных пар занимают узкую колонку. Какие это дни — решает разметка
      по данным: у разных групп самостоятельная работа в разные дни. */
-  .mgrid{display:grid;gap:6px;min-width:560px}
+  .mgrid{display:grid;gap:4px;min-width:560px}
   .mgrid .quiet{opacity:.7;font-size:11px}
   .mgrid .mh.quiet{opacity:.55}
   .mgrid .mcell.quiet{padding:6px 3px}
   .mgrid .mcell.quiet .mline{white-space:normal;justify-content:center;text-align:center;gap:2px}
   .mgrid .mh{font-size:11px;color:var(--muted);font-weight:700;text-align:center;padding:2px}
-  .mcell{min-height:82px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:6px 7px;
+  .mcell{min-height:64px;background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:3px 5px;
     cursor:pointer;transition:transform .1s}
   .mcell.empty{background:transparent;border-color:transparent;cursor:default}
   .mcell:hover:not(.empty){transform:translateY(-2px)}
   .mcell.today{border:2px solid var(--gold)}
-  .mcell .mn{font-size:12px;font-weight:700;color:var(--muted)}
+  .mcell .mn{font-size:11px;font-weight:700;color:var(--muted);line-height:1.1}
   .mcell.today .mn{color:var(--gold-ink)}
-  .mline{display:flex;align-items:center;gap:5px;font-size:11px;margin-top:4px;white-space:nowrap;overflow:hidden}
-  .mabbr{display:inline-flex;align-items:center;justify-content:center;width:36px;height:20px;padding:0;
+  .mline{display:flex;align-items:center;gap:4px;font-size:10.5px;margin-top:1px;
+    white-space:nowrap;overflow:hidden;line-height:1.2}
+  .mabbr{display:inline-flex;align-items:center;justify-content:center;width:34px;height:17px;padding:0;
     border-radius:999px;font-size:10px;font-weight:800;color:var(--on-accent);flex:none;letter-spacing:.02em}
-  .mtime{color:var(--ink);font-weight:700;font-size:10px;min-width:30px;flex:none}
+  .mtime{color:var(--ink);font-weight:700;font-size:9.5px;min-width:28px;flex:none}
   .mroom{color:var(--muted);font-weight:700;font-size:10px;overflow:hidden;text-overflow:ellipsis}
 
   /* ==== ЗАЛИВКА ПО ПОДГРУППАМ · общая ========================================= */
@@ -484,7 +485,7 @@
 
   /* ==== ЛЕГЕНДА, ПОДВАЛ ======================================================= */
   /* legend */
-  .legend{display:flex;flex-wrap:wrap;gap:8px 14px;padding:12px 0 2px}
+  .legend{display:flex;flex-wrap:wrap;gap:6px 14px;padding:8px 0 2px}
   .lg{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--muted)}
   .lg i{width:12px;height:12px;border-radius:50%;display:inline-block}
   .lg i.ring{background:transparent!important;border:2px solid var(--gold)}
