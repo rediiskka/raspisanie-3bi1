@@ -344,8 +344,10 @@
   .lesson.group{background:var(--panel);padding:0;--stripe:var(--sg0)}
   .lesson.group::before{display:block}
   .cols{display:flex;gap:0;align-items:stretch}
+  /* прижимаем к верху: при центрировании более короткая половина съезжала вниз
+     и строки «время + подгруппа» переставали быть на одной линии */
   .cols .sgcol{position:relative;flex:1 1 0;min-width:0;
-    display:flex;align-items:center;padding:12px 14px}
+    display:flex;align-items:flex-start;padding:12px 14px}
   .cols .sgcol::before{display:none}
   .cols .sgcol + .sgcol{border-left:1.5px dashed color-mix(in srgb,var(--ink) 26%,transparent)}
   .cols .sgcol .row{flex:1}
@@ -358,7 +360,9 @@
   .note summary{display:flex;align-items:center;gap:5px;cursor:pointer;
     color:var(--blue-ink);list-style:none;min-width:0}
   /* в свёрнутом виде видно начало заметки, а не безликое «Заметка» */
-  .note-peek{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;font-weight:600}
+  /* в свёрнутом виде — короткое начало, чтобы заметка не растягивалась на всю карточку */
+  .note-peek{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;
+    max-width:38ch;font-weight:600}
   .note-label{display:none;font-weight:700}
   .note[open] .note-peek{display:none}
   .note[open] .note-label{display:inline}
@@ -904,9 +908,10 @@ function linfo(l,timeText){
   const note=l.note?`<details class="note"><summary><svg class="ic" aria-hidden="true"><use href="#i-info"/></svg>`
     +`<span class="note-peek">${esc(l.note)}</span><span class="note-label">Заметка</span></summary>`
     +`<div class="note-full">${esc(l.note)}</div></details>`:"";
-  return `<div class="linfo">${own}<div class="subj">${hl(l.subject)||"—"}</div>${note}
+  // порядок в карточке всегда один: когда и у кого -> что -> какая пара -> кто ведёт -> заметка
+  return `<div class="linfo">${own}<div class="subj">${hl(l.subject)||"—"}</div>
     ${pills.length?`<div class="meta">${pills.join(" ")}</div>`:""}
-    ${meta.length?`<div class="meta">${meta.join("")}</div>`:""}</div>`;
+    ${meta.length?`<div class="meta">${meta.join("")}</div>`:""}${note}</div>`;
 }
 function body(l,timeText){return `<div class="row">${linfo(l,timeText)}${roomSide(l)}</div>`;}
 // какой подгруппе принадлежит набор пар: "", одна из двух, либо обе (делим фон пополам)
