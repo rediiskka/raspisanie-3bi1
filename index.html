@@ -973,6 +973,16 @@ function body(l,timeText){return `<div class="row">${linfo(l,timeText)}${roomSid
 // какой подгруппе принадлежит набор пар: "", одна из двух, либо обе (делим фон пополам)
 // Фильтры считаются включёнными, когда сужен состав пар, а не период показа.
 function filtersOn(){return !!(st.term||st.fType||st.fTeachers.length||st.fSub);}
+/* Список включённых фильтров словами — подпись под картинкой и в плашке над
+   расписанием: по картинке из беседы должно быть видно, что показаны не все пары. */
+function filterSummary(){
+  const parts=[];
+  if(st.fSub)parts.push(st.fSub+"-я подгруппа");
+  if(st.fType)parts.push(st.fType);
+  if(st.fTeachers.length)parts.push(st.fTeachers.join(", "));
+  if(st.term)parts.push("поиск «"+st.term+"»");
+  return parts.join(" · ");
+}
 function sgTint(ls){
   const real=(ls||[]).filter(l=>!isSelf(l));
   if(!real.length)return"";
@@ -1614,6 +1624,7 @@ _ro.observe(document.querySelector(".ribbon"));
    внешние библиотеки, а в файл попадает ровно то, что нужно — заголовок,
    период, сетка и легенда с пояснением про фон. */
 
+const TITLE_H = 62, TITLE_H_FILTERED = 84;   // блок заголовка с подписью про фильтры и без
 const PNG = {
   pad: 28, gap: 6, radius: 10,
   head: 90,                    // колонка с номером пары
@@ -1757,7 +1768,13 @@ function drawTitle(ctx, x, y, width, title, subtitle, pal){
   ctx.font = PNG.sans;
   ctx.fillStyle = pal.muted;
   ctx.fillText(subtitle, x, y + 46);
-  return 62;
+  const filters = filterSummary();
+  if (filters){
+    ctx.font = '700 13px "Manrope", "Segoe UI", system-ui, sans-serif';
+    ctx.fillStyle = pal.ink;
+    ctx.fillText("Показаны не все пары: " + filters, x, y + 68);
+  }
+  return filters ? TITLE_H_FILTERED : TITLE_H;
 }
 
 /* Легенда: тип пары — цвет плашки, подгруппа — цвет фона. */
@@ -1821,7 +1838,8 @@ function drawWeekPNG(){
     rows.push({ pi, lines, height: Math.max(46, max * PNG.line + PNG.cellPad * 2) });
   }
 
-  const gridTop = PNG.pad + 62 + 30;
+  const titleH = filtersOn() ? TITLE_H_FILTERED : TITLE_H;
+  const gridTop = PNG.pad + titleH + 30;
   const gridHeight = rows.reduce((s, r) => s + r.height + PNG.gap, 0);
   const height = gridTop + gridHeight + 16 + 52 + PNG.pad;
 
@@ -1908,7 +1926,8 @@ function drawMonthPNG(){
     rowHeights.push(Math.max(58, 20 + max * PNG.line + PNG.cellPad));
   }
 
-  const gridTop = PNG.pad + 62 + 24;
+  const titleH = filtersOn() ? TITLE_H_FILTERED : TITLE_H;
+  const gridTop = PNG.pad + titleH + 24;
   const height = gridTop + rowHeights.reduce((s, h) => s + h + PNG.gap, 0) + 16 + 52 + PNG.pad;
   const { canvas, ctx } = newCanvas(width, height);
   ctx.fillStyle = pal.bg; ctx.fillRect(0, 0, width, height);
