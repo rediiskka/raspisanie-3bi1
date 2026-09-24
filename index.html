@@ -917,7 +917,9 @@ function todayWeek(){const now=new Date();for(let i=0;i<DATA.weeks.length;i++){c
 function match(l){
   if(st.fType&&l.tn!==st.fType)return false;
   if(st.fTeachers.length&&!st.fTeachers.includes(l.teacher))return false;
-  if(st.fSub&&l.subgroup!==st.fSub)return false;
+  // Подгруппа — это «моё расписание»: общие пары (без подгруппы) остаются,
+  // прячутся только пары другой подгруппы. Иначе студент терял бы лекции.
+  if(st.fSub&&l.subgroup&&l.subgroup!==st.fSub)return false;
   if(st.term){const hay=(l.subject+" "+l.teacher+" "+l.room+" "+l.tn+" "+(l.raw||"")).toLowerCase();
     if(!hay.includes(st.term))return false;}
   return true;
