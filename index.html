@@ -2027,9 +2027,11 @@ async function boot(){
     prep();
     const shared=hashRead();
     if(!["week","m1","custom"].includes(st.scope))st.scope="week";
-    if(st.view==="month"&&!/[#&]m=/.test(location.hash))st.monthPtr=monthOfWeek(st.cur);
+    // Обычное открытие (без ссылки с адресом) всегда начинается с сегодняшнего дня:
+    // сохранённая в localStorage неделя из прошлого визита давала устаревшую страницу.
+    if(!shared){st.cur=todayWeek();st.scope="week";st.pop=null;}
     if(!(st.cur>=0&&st.cur<DATA.weeks.length))st.cur=todayWeek();
-    if(!shared&&!localStorage.getItem(KEY))st.cur=todayWeek();
+    if(!shared||!/(^|&)m=/.test(location.hash.slice(1)))st.monthPtr=monthOfWeek(st.cur);
     initControls();
     render();
   }catch(e){
