@@ -850,6 +850,18 @@ function centerToday(){requestAnimationFrame(()=>{
   cont.scrollLeft+=(er.left-cr.left)-(cont.clientWidth-er.width)/2;});}
 
 /* ==== ПОДГОТОВКА ДАННЫХ ===================================================== */
+/* По понедельникам у 2-й подгруппы выходной. Общие пары этого дня остаются
+   у 1-й подгруппы, а пары 2-й убираются из всех видов расписания и PNG. */
+function applyMondayDayOff(){
+  DATA.weeks.forEach(w=>w.days.forEach(d=>{
+    if(d.day!=="Понедельник")return;
+    d.pairs.forEach(p=>{
+      p.lessons=p.lessons
+        .filter(l=>l.subgroup!=="2")
+        .map(l=>l.subgroup?l:{...l,subgroup:"1"});
+    });
+  }));
+}
 function prep(){
   DATE_MAP={};MONTHS=[];const seen=new Set();
   DATA.weeks.forEach((w,wi)=>w.days.forEach((d,di)=>{
@@ -940,7 +952,7 @@ const markKey=m=>JSON.stringify([m.cur,m.next]);
 function nowMarks(){
   const now=new Date();let cur=null,next=null,best=Infinity;
   DATA.weeks.forEach((w,wi)=>w.days.forEach((d,di)=>{if(!d._dt)return;
-    d.pairs.forEach((p,pi)=>{const real=p.lessons.filter(l=>!isSelf(l)&&l.subject);if(!real.length)return;
+    d.pairs.forEach((p,pi)=>{const real=p.lessons.filter(l=>!isSelf(l)&&l.subject).filter(match);if(!real.length)return;
       const t=pairTimes(pairTime(p,real),d._dt);if(!t)return;
       if(now>=t[0]&&now<=t[1])cur={wi,di,pi};
       if(t[0]>now&&(t[0]-now)<best){best=t[0]-now;next={wi,di,pi};}});}));
@@ -2024,6 +2036,7 @@ async function boot(){
   }
   try{
     load();
+    applyMondayDayOff();
     prep();
     const shared=hashRead();
     if(!["week","m1","custom"].includes(st.scope))st.scope="week";
